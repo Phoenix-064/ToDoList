@@ -1,7 +1,6 @@
 package engine
 
 import (
-	user "ToDoList/internal/User"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -41,10 +40,11 @@ func (e EngineHandler) AddUser(ctx *gin.Context) error {
 	err := ctx.ShouldBind(&uq)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, Response{
-			message: err.Error(),
+			message: "err",
+			content: err.Error(),
 		})
 		return err
 	}
-	user.UserList()
+	// 未完成
 	return nil
 }
