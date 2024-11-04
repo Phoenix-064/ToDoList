@@ -8,11 +8,11 @@ import (
 
 // User 用户信息
 type User struct {
-	email    string
-	uuid     string
-	name     string
-	password string
-	isAdmin  bool
+	Email    string `json:"email"`
+	Uuid     string `json:"uuid"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
+	IsAdmin  bool   `json:"isAdmin"`
 }
 
 // UserList 用户列表
@@ -39,11 +39,11 @@ func newUser() (User, error) {
 		return User{}, err
 	}
 
-	return User{uuid: u.String(), isAdmin: false}, nil
+	return User{Uuid: u.String(), IsAdmin: false}, nil
 }
 
 // newUserList 返回一个新的用户列表
-func newUserList() UserList {
+func NewUserList() UserList {
 	return UserList{}
 }
 
@@ -54,7 +54,7 @@ func NewUserManager() UserManager {
 
 // AddUser 添加用户
 func (ul *UserList) AddUser(u User) error {
-	ul.list[u.uuid] = u
+	ul.list[u.Uuid] = u
 	return nil
 }
 
@@ -65,7 +65,7 @@ func (ul *UserList) CheckUser(s string) (User, error) {
 		return u, nil
 	} else {
 		for _, j := range ul.list {
-			if j.name == s && j.email == s {
+			if j.Name == s && j.Email == s {
 				return j, nil
 			}
 		}
@@ -79,16 +79,16 @@ func (ul *UserList) DeleteUser(s string) error {
 	if err != nil {
 		return err
 	}
-	delete(ul.list, u.uuid)
+	delete(ul.list, u.Uuid)
 	return nil
 }
 
 // UpdateUser 更新用户信息
 func (ul *UserList) UpdateUser(former User, later User) error {
-	_, err := ul.CheckUser(former.uuid)
+	_, err := ul.CheckUser(former.Uuid)
 	if err != nil {
 		return err
 	}
-	ul.list[former.uuid] = later
+	ul.list[former.Uuid] = later
 	return nil
 }
