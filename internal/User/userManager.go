@@ -149,7 +149,7 @@ func (um *UserManager) DeleteUser(c string) error {
 	temp, err := um.CheckUser(c)
 	// 如果要删除多个数据
 	// 应该进行提醒
-	// 
+	//
 	if err != nil {
 		return err
 	}
@@ -158,12 +158,11 @@ func (um *UserManager) DeleteUser(c string) error {
 }
 
 // UpdateUser 更新用户数据
-func (um *UserManager) UpdateUser(former User, later User) error{
-	var 
-	result := myDB.db.Where("student_name = ?", "genshin").Find(&Stu)
+func (um *UserManager) UpdateUser(former User, later User) error {
+	var u User
+	result := um.db.Model(&u).Where("uuid = ?", former.Uuid).Updates(later)
 	if result.Error != nil {
-		fmt.Println("出错了")
-		fmt.Println(result.Error)
+		return result.Error
 	}
-	return Stu
+	return nil
 }
