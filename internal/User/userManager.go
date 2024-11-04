@@ -1,6 +1,10 @@
 package user
 
-import "github.com/google/uuid"
+import (
+	"errors"
+
+	"github.com/google/uuid"
+)
 
 // User 用户信息
 type User struct {
@@ -24,8 +28,8 @@ type UserManager struct {
 type UserHandle interface {
 	AddUser(User) error
 	DeleteUser(string) error
-	CheckUser(User) (bool, string, error) //string值为uuid
-	UpdateUser(User) error
+	CheckUser(string) (User, error) //可以输入,email,name
+	UpdateUser(former User, later User) error
 }
 
 // newUser 返回一个新的用户
@@ -49,18 +53,42 @@ func NewUserManager() UserManager {
 }
 
 // AddUser 添加用户
-func (ul UserList) AddUser(u User) error {
+func (ul *UserList) AddUser(u User) error {
 	ul.list[u.uuid] = u
 	return nil
 }
 
 // CheckUser 查找用户
-func (ul UserList) CheckUser() {
-
+func (ul *UserList) CheckUser(s string) (User, error) {
+	u, ok := ul.list[s]
+	if ok {
+		return u, nil
+	} else {
+		for _, j := range ul.list {
+			if j.name == s && j.email == s {
+				return j, nil
+			}
+		}
+	}
+	return User{}, errors.New("没有此用户")
 }
 
 // DeleteUser 删除用户
-func (ul UserList) DeleteUser(string) error {
+func (ul *UserList) DeleteUser(s string) error {
+	u, err := ul.CheckUser(s)
+	if err != nil {
+		return err
+	}
+	delete(ul.list, u.uuid)
+	return nil
+}
 
+// UpdateUser 更新用户信息
+func (ul *UserList) UpdateUser(former User, later User) error {
+	_, err := ul.CheckUser(former.uuid)
+	if err != nil {
+		return err
+	}
+	ul.list[former.uuid] = later
 	return nil
 }
