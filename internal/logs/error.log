@@ -1,0 +1,3 @@
+time="2024-11-05T19:23:52+08:00" level=error msg="添加用户出错，已有的邮箱" appName=ToDoList
+time="2024-11-05T19:31:03+08:00" level=error msg="添加用户出错，已有的邮箱" appName=ToDoList
+time="2024-11-05T19:31:29+08:00" level=error msg="添加用户出错，已有的名字" appName=ToDoList

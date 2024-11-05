@@ -17,7 +17,7 @@ type User struct {
 	IsAdmin  bool   `json:"isAdmin" gorm:"column:isAdmin;not null;default:false"`
 }
 
-// UserList 用户列表(测试时使用)
+// UserList 用户列表(使用json,测试时使用)
 type UserList struct {
 	list map[string]User //[uuid]user
 }
@@ -31,12 +31,12 @@ type UserManager struct {
 type UserHandle interface {
 	AddUser(User) error
 	DeleteUser(string) error
-	CheckUser(string) ([]User, error) //可以输入,email,name
+	CheckUser(string) (User, error) //可以输入,email,name
 	UpdateUser(former User, later User) error
 }
 
 // newUser 返回一个新的用户
-func newUser() (User, error) {
+func NewUser() (User, error) {
 	u, err := uuid.NewUUID()
 	if err != nil {
 		return User{}, err
@@ -45,12 +45,12 @@ func newUser() (User, error) {
 }
 
 // newUserList 返回一个新的用户列表
-func NewUserList() UserList {
-	return UserList{}
+func NewUserList() *UserList {
+	return &UserList{}
 }
 
 // NewUserManager 返回一个新的用户管理系统
-func NewUserManager(dsn string) UserManager {
+func NewUserManager(dsn string) *UserManager {
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		panic("failed to connect database")
@@ -59,7 +59,7 @@ func NewUserManager(dsn string) UserManager {
 	if err != nil {
 
 	}
-	return UserManager{db: db}
+	return &UserManager{db: db}
 }
 
 // AddUser 添加用户
@@ -69,23 +69,18 @@ func (ul *UserList) AddUser(u User) error {
 }
 
 // CheckUser 查找用户
-func (ul *UserList) CheckUser(c string) ([]User, error) {
+func (ul *UserList) CheckUser(c string) (User, error) {
 	u, ok := ul.list[c]
-	var temp []User
 	if ok {
-		temp = append(temp, u)
-		return temp, nil
+		return u, nil
 	} else {
 		for _, j := range ul.list {
 			if j.Name == c && j.Email == c {
-				temp = append(temp, j)
+				return j, nil
 			}
 		}
 	}
-	if len(temp) != 0 {
-		return temp, nil
-	}
-	return temp, errors.New("没有此用户")
+	return u, errors.New("没有此用户")
 }
 
 // DeleteUser 删除用户
@@ -94,13 +89,7 @@ func (ul *UserList) DeleteUser(c string) error {
 	if err != nil {
 		return err
 	}
-	//这里未来可以加一个警告功能，对于删除了多个用户时
-	// if len(u) > 1{
-
-	// }
-	for _, j := range u {
-		delete(ul.list, j.Uuid)
-	}
+	delete(ul.list, u.Uuid)
 	return nil
 }
 
@@ -116,6 +105,14 @@ func (ul *UserList) UpdateUser(former User, later User) error {
 
 // AddUser 添加用户
 func (um *UserManager) AddUser(u User) error {
+	_, err := um.CheckUser(u.Email)
+	if err == nil {
+		return errors.New("已有的邮箱")
+	}
+	_, err = um.CheckUser(u.Name)
+	if err == nil {
+		return errors.New("已有的名字")
+	}
 	result := um.db.Create(&u)
 	if result.Error != nil {
 		return result.Error
@@ -124,24 +121,16 @@ func (um *UserManager) AddUser(u User) error {
 }
 
 // CheckUser 查找用户
-func (um *UserManager) CheckUser(c string) ([]User, error) {
-	var temp []User
-	err := um.db.Where("name = ?", c).Find(&temp).Error
-	if err != nil {
-		return temp, err
+func (um *UserManager) CheckUser(c string) (User, error) {
+	var user User
+	result := um.db.Where("email = ? OR name = ? OR uuid = ?", c, c, c).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return user, errors.New("没有此用户")
+		}
+		return user, result.Error
 	}
-	err = um.db.Where("uuid = ?", c).Find(&temp).Error
-	if err != nil {
-		return temp, err
-	}
-	err = um.db.Where("email = ?", c).Find(&temp).Error
-	if err != nil {
-		return temp, err
-	}
-	if len(temp) != 0 {
-		return temp, nil
-	}
-	return temp, errors.New("没有此用户")
+	return user, nil
 }
 
 // DeleteUser 删除用户
