@@ -2,7 +2,9 @@ package engine
 
 import (
 	user "ToDoList/internal/User"
+	"ToDoList/internal/utils"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -20,9 +22,20 @@ type Response struct {
 
 // UserRequest 标准用户信息请求体
 type UserRequest struct {
-	Name     string `json:"name"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+// Email 用于接收验证时返回的邮箱
+type Email struct {
+	Email string `json:"email"`
+}
+
+// EmailVerification 用于使用邮箱验证码登录
+type EmailVerification struct {
+	EmailEmail       string `json:"email"`
+	VerificationCode string `json:"verification_code"`
+	Password         string `json:"password"`
 }
 
 type NetUserHandler interface {
@@ -67,7 +80,6 @@ func (eh EngineHandler) SignUp(ctx *gin.Context) {
 		return
 	}
 	u.Email = uq.Email
-	u.Name = uq.Name
 	u.Password = uq.Password
 	err = um.AddUser(u)
 	if err != nil {
@@ -76,7 +88,7 @@ func (eh EngineHandler) SignUp(ctx *gin.Context) {
 				Message: "err",
 				Content: "没有此用户",
 			})
-			logrus.Info("没有此用户")
+			return
 		} else {
 			ctx.JSON(http.StatusInternalServerError, Response{
 				Message: "err",
@@ -110,44 +122,11 @@ func (eh EngineHandler) SignIn(ctx *gin.Context) {
 	u, err := um.CheckUser(uq.Email)
 	if err != nil { // 如果有错误返回，判断返回类型
 		if err.Error() == "没有此用户" {
-			u, err := um.CheckUser(uq.Name)
-			if err != nil { // 如果错误返回还不为空，那么要不是出错了，要不是不存在此用户
-				ctx.JSON(http.StatusBadRequest, Response{
-					Message: "err",
-					Content: err.Error(),
-				})
-				// 直接返回错误就可以了，然后发现要记录错误
-				if err.Error() == "没有此用户" {
-					logrus.Info("没有此用户")
-					return
-				} else {
-					logrus.Error("查找用户时出错，", err)
-					return
-				}
-			}
-			// 查找姓名时未出错，则判断密码是否正确
-			if u.Password == uq.Password {
-				// 这一部分用于判断邮箱是否有误，但好像没用
-				// if u.Email == uq.Email {
-				// 	ctx.JSON(http.StatusOK, Response{
-				// 		Message: "ok",
-				// 		Content: nil,
-				// 	})
-				// 	return
-				// } else {
-				// 	ctx.JSON(http.StatusUnauthorized, Response{
-				// 		Message: "err",
-				// 		Content: "邮箱错误",
-				// 	})
-				// 	return
-				// }
-			} else {
-				ctx.JSON(http.StatusUnauthorized, Response{
-					Message: "err",
-					Content: "密码错误",
-				})
-				return
-			}
+			ctx.JSON(http.StatusUnauthorized, Response{
+				Message: "err",
+				Content: "没有此用户",
+			})
+			return
 		} else { // 错误类型不为用户不存在，则应该是出错了
 			ctx.JSON(http.StatusInternalServerError, Response{
 				Message: "err",
@@ -159,9 +138,20 @@ func (eh EngineHandler) SignIn(ctx *gin.Context) {
 	}
 	// 查找邮箱时未出错，则判断密码是否正确
 	if u.Password == uq.Password {
+		th := utils.NewTokenHandler()
+		tokenString, err := th.GenerateToken(u.Uuid, u.IsAdmin)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, Response{
+				Message: "err",
+				Content: err.Error(),
+			})
+			return
+		}
 		ctx.JSON(http.StatusOK, Response{
 			Message: "ok",
-			Content: nil,
+			Content: gin.H{
+				"token": tokenString,
+			},
 		})
 		return
 	} else {
@@ -171,5 +161,28 @@ func (eh EngineHandler) SignIn(ctx *gin.Context) {
 		})
 		logrus.Info("密码错误")
 		return
+	}
+}
+
+// AuthMiddleware Token验证中间件
+func AuthMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		authHeader := ctx.GetHeader("Authorization")
+		if authHeader == "" {
+			ctx.JSON(http.StatusUnauthorized, Response{
+				Message: "err",
+				Content: "缺少请求头",
+			})
+			ctx.Abort()
+			return
+		}
+		parts := strings.Split(authHeader, " ")
+		if parts[0] != "Bearer" || len(parts) != 2 {
+			ctx.JSON(http.StatusUnauthorized, Response{
+				Message: "err",
+				Content: "错误的请求格式",
+			})
+		}
+		// 未完成————————————————————————————————————————————————————————————————————————
 	}
 }

@@ -29,7 +29,7 @@ type Email struct {
 }
 
 // newEmail 创建一个新邮件
-func newEmail(to string) Email {
+func newEmail(to string) (Email, string) {
 	code := ""
 	for i := 0; i < 6; i++ {
 		code += fmt.Sprintf("%d", rand.Intn(10))
@@ -38,7 +38,7 @@ func newEmail(to string) Email {
 		To:      to,
 		Subject: "验证码",
 		Body:    "验证码为：\n" + code,
-	}
+	}, code
 }
 
 // NewEmailManager 创建一个新的邮件管理系统
@@ -118,7 +118,7 @@ func SendSimpleEmail(config EmailConfig, email Email) error {
 }
 
 // ConfigureEmail 配置并发送邮件
-func (em EmailManager) ConfigureEmail(to string) error {
+func (em EmailManager) ConfigureEmail(to string) (error, string) {
 	config := EmailConfig{
 		SMTPHost:    "smtp.163.com",
 		SMTPPort:    "465",
@@ -126,11 +126,11 @@ func (em EmailManager) ConfigureEmail(to string) error {
 		SenderPass:  "GZMbM37v8M7EaC3P", // 使用授权码
 	}
 
-	email := newEmail(to)
+	email, verificationCode := newEmail(to)
 	// 发送邮件
 	err := SendSimpleEmail(config, email)
 	if err != nil {
-		return err
+		return err, verificationCode
 	}
-	return nil
+	return nil, verificationCode
 }

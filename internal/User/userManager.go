@@ -12,7 +12,6 @@ import (
 type User struct {
 	Email    string `json:"email" gorm:"column:email;not null;type:varchar(30)"`
 	Uuid     string `json:"uuid" gorm:"column:uuid;primaryKey"`
-	Name     string `json:"name" gorm:"column:name;not null;type:varchar(30)"`
 	Password string `json:"password" gorm:"column:password;not null;type:varchar(30)"`
 	IsAdmin  bool   `json:"isAdmin" gorm:"column:isAdmin;not null;default:false"`
 }
@@ -31,7 +30,9 @@ type UserManager struct {
 type UserHandle interface {
 	AddUser(User) error
 	DeleteUser(string) error
-	CheckUser(string) (User, error) //可以输入,email,name
+	CheckUser(string) (User, error) //可以输入uuid,email
+	CheckUuid(uuid string) (User, error)
+	CheckEmail(email string) (User, error)
 	UpdateUser(former User, later User) error
 }
 
@@ -75,7 +76,7 @@ func (ul *UserList) CheckUser(c string) (User, error) {
 		return u, nil
 	} else {
 		for _, j := range ul.list {
-			if j.Name == c && j.Email == c {
+			if j.Email == c {
 				return j, nil
 			}
 		}
@@ -109,10 +110,6 @@ func (um *UserManager) AddUser(u User) error {
 	if err == nil {
 		return errors.New("已有的邮箱")
 	}
-	_, err = um.CheckUser(u.Name)
-	if err == nil {
-		return errors.New("已有的名字")
-	}
 	result := um.db.Create(&u)
 	if result.Error != nil {
 		return result.Error
@@ -120,10 +117,36 @@ func (um *UserManager) AddUser(u User) error {
 	return nil
 }
 
-// CheckUser 查找用户
+// CheckUser 查找用户，支持查找uuid和email
 func (um *UserManager) CheckUser(c string) (User, error) {
 	var user User
-	result := um.db.Where("email = ? OR name = ? OR uuid = ?", c, c, c).First(&user)
+	result := um.db.Where("email = ?  OR uuid = ?", c, c).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return user, errors.New("没有此用户")
+		}
+		return user, result.Error
+	}
+	return user, nil
+}
+
+// CheckUuid 查找Uuid
+func (um *UserManager) CheckUuid(uuid string) (User, error) {
+	var user User
+	result := um.db.Where("uuid = ?", uuid).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return user, errors.New("没有此用户")
+		}
+		return user, result.Error
+	}
+	return user, nil
+}
+
+// CheckEmail 查找email
+func (um *UserManager) CheckEmail(email string) (User, error) {
+	var user User
+	result := um.db.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return user, errors.New("没有此用户")
