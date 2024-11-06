@@ -2,6 +2,7 @@ package engine
 
 import (
 	user "ToDoList/internal/User"
+	"ToDoList/internal/email"
 	"ToDoList/internal/utils"
 	"net/http"
 	"strings"
@@ -33,7 +34,7 @@ type Email struct {
 
 // EmailVerification 用于使用邮箱验证码登录
 type EmailVerification struct {
-	EmailEmail       string `json:"email"`
+	Email            string `json:"email"`
 	VerificationCode string `json:"verification_code"`
 	Password         string `json:"password"`
 }
@@ -55,10 +56,84 @@ func newUserRequest() UserRequest {
 	return UserRequest{}
 }
 
+// newEmail 返回一个新的Email
+func newEmail() Email {
+	return Email{}
+}
+
+// newEmailVerification 返回一个新的EmailVerification
+func newEmailVerification() EmailVerification {
+	return EmailVerification{}
+}
+
+// SendVerificationCode 发送验证码
+func (eh EngineHandler) SendVerificationCode(ctx *gin.Context) {
+	em := newEmail()
+	err := ctx.ShouldBind(&em)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error("无法连接结构体，", err)
+		return
+	}
+	var uh user.UserHandle
+	uh = user.NewUserManager()
+	_, err = uh.CheckEmail(em.Email)
+	if err == nil { // 找到了用户
+		ctx.JSON(http.StatusUnauthorized, Response{
+			Message: "err",
+			Content: "已有的邮箱",
+		})
+		return
+	} else if err.Error() != "没有此用户" { // 判断是否为服务器出错
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error("查找用户时出错，", err)
+		return
+	}
+	var vcm utils.VerificationCodeManager
+	vcm = utils.NewVerificationCodeHandler()
+	err = vcm.CheckTheSendingFrequency(em.Email)
+	if err != nil {
+		if err.Error() == "创建验证码时间间隔小于一分钟" {
+			ctx.JSON(http.StatusUnauthorized, Response{
+				Message: "err",
+				Content: err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err.Error())
+		return
+	}
+	emailManager := email.NewEmailManager()
+	err = emailManager.ConfigureEmail(em.Email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error("发送邮件时失败，", err)
+		return
+	}
+	ctx.JSON(http.StatusOK, Response{
+		Message: "ok",
+		Content: "发送验证码成功",
+	})
+	// 先将验证码储存在mysql中，以后可以迭代为储存在redis中
+}
+
 // SignUp 注册
 func (eh EngineHandler) SignUp(ctx *gin.Context) {
-	uq := newUserRequest()
-	err := ctx.ShouldBind(&uq)
+	ev := newEmailVerification()
+	err := ctx.ShouldBind(&ev)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, Response{
 			Message: "err",
@@ -67,9 +142,25 @@ func (eh EngineHandler) SignUp(ctx *gin.Context) {
 		logrus.Error("无法连接结构体user，", err)
 		return
 	}
-	dsn := "root:123@tcp(127.0.0.1:3306)/school?charset=utf8mb4&parseTime=True&loc=Local"
-	var um user.UserHandle
-	um = user.NewUserManager(dsn)
+	var vcm utils.VerificationCodeManager
+	vcm = utils.NewVerificationCodeHandler()
+	err = vcm.CheckTheVerificationCode(ev.Email, ev.VerificationCode)
+	if err != nil {
+		if err.Error() != "错误的验证码" {
+			ctx.JSON(http.StatusUnauthorized, Response{
+				Message: "err",
+				Content: err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		return
+	}
+	var uh user.UserHandle
+	uh = user.NewUserManager()
 	u, err := user.NewUser()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, Response{
@@ -79,9 +170,9 @@ func (eh EngineHandler) SignUp(ctx *gin.Context) {
 		logrus.Error("无法创建新用户，", err)
 		return
 	}
-	u.Email = uq.Email
-	u.Password = uq.Password
-	err = um.AddUser(u)
+	u.Email = ev.Email
+	u.Password = ev.Password
+	err = uh.AddUser(u)
 	if err != nil {
 		if err.Error() == "没有此用户" {
 			ctx.JSON(http.StatusUnauthorized, Response{
@@ -116,10 +207,9 @@ func (eh EngineHandler) SignIn(ctx *gin.Context) {
 		logrus.Error("连接结构体User失败，", err)
 		return
 	}
-	dsn := "root:123@tcp(127.0.0.1:3306)/school?charset=utf8mb4&parseTime=True&loc=Local"
-	var um user.UserHandle
-	um = user.NewUserManager(dsn)
-	u, err := um.CheckUser(uq.Email)
+	var uh user.UserHandle
+	uh = user.NewUserManager()
+	u, err := uh.CheckEmail(uq.Email)
 	if err != nil { // 如果有错误返回，判断返回类型
 		if err.Error() == "没有此用户" {
 			ctx.JSON(http.StatusUnauthorized, Response{
