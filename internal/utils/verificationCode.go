@@ -71,6 +71,8 @@ func (vch VerificationCodeHandler) CheckTheSendingFrequency(email string) error 
 		if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return result.Error
 		}
+		// 这里实际上可以改进，在查找是要求要是未使用的
+		// 但我想让用户体验一下一次发出多条验证码的感觉
 	}
 	nextAllowedTime := lastCode.CreateTime.Add(time.Minute)
 	if time.Now().Before(nextAllowedTime) {
@@ -101,6 +103,9 @@ func (vch VerificationCodeHandler) CheckTheVerificationCode(email string, code s
 			return errors.New("错误的验证码")
 		}
 		return result.Error
+	}
+	if err := vch.db.Model(&verificationCode).Update("used", true).Error; err != nil {
+		return err
 	}
 	return nil
 }
