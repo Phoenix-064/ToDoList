@@ -5,5 +5,10 @@
         "logrus",
         "sirupsen",
         "varchar"
+    ],
+    "cSpell.words": [
+        "signin",
+        "signup",
+        "todolist"
     ]
 }

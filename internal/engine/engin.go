@@ -5,7 +5,6 @@ import (
 	"ToDoList/internal/email"
 	"ToDoList/internal/utils"
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -249,30 +248,6 @@ func (eh EngineHandler) SignIn(ctx *gin.Context) {
 			Message: "err",
 			Content: "密码错误",
 		})
-		logrus.Info("密码错误")
 		return
-	}
-}
-
-// AuthMiddleware Token验证中间件
-func AuthMiddleware() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		authHeader := ctx.GetHeader("Authorization")
-		if authHeader == "" {
-			ctx.JSON(http.StatusUnauthorized, Response{
-				Message: "err",
-				Content: "缺少请求头",
-			})
-			ctx.Abort()
-			return
-		}
-		parts := strings.Split(authHeader, " ")
-		if parts[0] != "Bearer" || len(parts) != 2 {
-			ctx.JSON(http.StatusUnauthorized, Response{
-				Message: "err",
-				Content: "错误的请求格式",
-			})
-		}
-		// 未完成————————————————————————————————————————————————————————————————————————
 	}
 }

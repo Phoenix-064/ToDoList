@@ -23,10 +23,6 @@ func (gs GinService) SetUpRoutes(e *gin.Engine, eh engine.EngineHandler) {
 			User.POST("/signup/send-code", eh.SendVerificationCode)
 			User.POST("/signup", eh.SignUp)
 		}
-		ToDoList.GET("", func(ctx *gin.Context) {
-			ctx.JSON(200, gin.H{
-				"message": "ok",
-			})
-		})
+		ToDoList.GET("")
 	}
 }
