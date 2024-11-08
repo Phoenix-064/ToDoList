@@ -2,16 +2,19 @@ package utils
 
 import (
 	"errors"
+	"fmt"
+	"os"
 	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
 )
 
 type Claims struct {
-	Uuid    string `json:"uuid"`
-	IsAdmin bool   `json:"isAdmin"`
 	jwt.StandardClaims
+	Uuid    string `json:"uuid"`
+	IsAdmin bool   `json:"is_admin"`
 }
 
 type TokenHandler struct {
@@ -20,11 +23,17 @@ type TokenHandler struct {
 
 // NewTokenHandler 返回一个TokenHandler
 func NewTokenHandler() TokenHandler {
-	return TokenHandler{}
+	return TokenHandler{
+		JwtKey: []byte(os.Getenv("JWT_KEY")),
+	}
 }
 
 // GenerateToken 生成一个token
 func (th TokenHandler) GenerateToken(uuid string, isAdmin bool) (string, error) {
+	// logrus.WithFields(logrus.Fields{
+	// 	"uuid":    uuid,
+	// 	"isAdmin": isAdmin,
+	// }).Info("Generating token with values")
 	expirationTime := time.Now().Add(24 * time.Hour).Unix() // 设置过期时间
 	claims := &Claims{
 		Uuid:    uuid,
@@ -34,6 +43,7 @@ func (th TokenHandler) GenerateToken(uuid string, isAdmin bool) (string, error) 
 			ExpiresAt: expirationTime,
 		},
 	}
+	logrus.WithField("claims", fmt.Sprintf("%+v", claims)).Info("Created claims")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(th.JwtKey)
 	if err != nil {
@@ -52,7 +62,8 @@ func (th TokenHandler) parseToken(tokenString string) (*Claims, error) {
 	if err != nil {
 		return nil, err
 	}
-	if Claims, ok := token.Claims.(*Claims); ok && token.Valid {
+	Claims, ok := token.Claims.(*Claims)
+	if ok && token.Valid {
 		return Claims, nil
 	}
 	return nil, errors.New("未知的token")
@@ -77,5 +88,5 @@ func (th TokenHandler) ValidateToken(tokenString string) (*Claims, error) {
 	if c.Uuid == "" {
 		return nil, errors.New("空的uuid")
 	}
-	return &Claims{}, nil
+	return c, nil
 }

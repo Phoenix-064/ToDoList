@@ -1,10 +1,13 @@
 package engine
 
 import (
+	data "ToDoList/internal/Data"
 	user "ToDoList/internal/User"
 	"ToDoList/internal/email"
 	"ToDoList/internal/utils"
 	"net/http"
+	"os"
+	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -12,6 +15,7 @@ import (
 
 // EnginHandler gin框架下的控制器
 type EngineHandler struct {
+	TodoManager data.HandleTodo
 }
 
 // Response 标准回应结构体
@@ -47,7 +51,10 @@ type NetUserHandler interface {
 
 // NewEngineHandler 返回一个EngineHandler
 func NewEngineHandler() EngineHandler {
-	return EngineHandler{}
+	dir, _ := os.Getwd()
+	return EngineHandler{
+		TodoManager: data.NewTodoManager(filepath.Join(dir, "TodoData")),
+	}
 }
 
 // newUserRequest 返回一个新的UserRequest
@@ -66,7 +73,7 @@ func newEmailVerification() EmailVerification {
 }
 
 // SendVerificationCode 发送验证码
-func (eh EngineHandler) SendVerificationCode(ctx *gin.Context) {
+func (eh *EngineHandler) SendVerificationCode(ctx *gin.Context) {
 	em := newEmail()
 	err := ctx.ShouldBind(&em)
 	if err != nil {
@@ -130,7 +137,7 @@ func (eh EngineHandler) SendVerificationCode(ctx *gin.Context) {
 }
 
 // SignUp 注册
-func (eh EngineHandler) SignUp(ctx *gin.Context) {
+func (eh *EngineHandler) SignUp(ctx *gin.Context) {
 	ev := newEmailVerification()
 	err := ctx.ShouldBind(&ev)
 	if err != nil {
@@ -195,7 +202,7 @@ func (eh EngineHandler) SignUp(ctx *gin.Context) {
 }
 
 // SignIn 登录
-func (eh EngineHandler) SignIn(ctx *gin.Context) {
+func (eh *EngineHandler) SignIn(ctx *gin.Context) {
 	uq := newUserRequest()
 	err := ctx.ShouldBind(&uq)
 	if err != nil {

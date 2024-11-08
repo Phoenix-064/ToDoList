@@ -5,14 +5,14 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync"
 )
 
 type Todo struct {
-	ID              string
-	Event           string
-	ImportanceLevel int
-	Completed       bool
+	ID        string `json:"ID"`
+	Event     string `json:"event"`
+	Completed bool   `json:"completed"`
 }
 
 // TodoManager 管理单个用户的Data
@@ -22,15 +22,16 @@ type TodoManager struct {
 }
 
 type HandleTodo interface {
-	findTodo(string) []Todo
-	deleteTodo(string) error
-	addTodo(uuid string, todo Todo) error
-	updateTodo(former Todo, Later Todo) error
+	ReadUserTodos(uuid string) ([]Todo, error)
+	SaveTheUserTodos(uuid string, todos []Todo) error
+	AddTodo(uuid string, todo Todo) error
+	DeleteTodo(uuid string, todo Todo) error
+	RandomlySelectTodo(uuid string) (Todo, error)
 }
 
-// newTodo 建立一个新的待办事项
-func newTodo(Event string) *Todo {
-	return &Todo{Event: Event, Completed: false}
+// NewTodo 建立一个新的待办事项
+func NewTodo(id string, Event string) *Todo {
+	return &Todo{ID: id, Event: Event, Completed: false}
 }
 
 // NewTodoManager 建立一个新的用户待办事项管理
@@ -40,7 +41,8 @@ func NewTodoManager(dir string) *TodoManager {
 
 // getTodoPath 获取用户Todo文件的路径
 func (m *TodoManager) getTodoPath(uuid string) string {
-	return filepath.Join(m.dir, "user", uuid, "todo.json")
+	cleanId := strings.ReplaceAll(uuid, "-", "")
+	return filepath.Join(m.dir, "user", cleanId, "todo.json")
 }
 
 // ensurePathExistence 确保路径存在，如果不存在则创建路径
@@ -124,5 +126,8 @@ func (m *TodoManager) RandomlySelectTodo(uuid string) (Todo, error) {
 	if err != nil {
 		return Todo{}, err
 	}
-	return todos[rand.Intn(len(todos)-1)], nil
+	if len(todos) == 0 {
+		return Todo{}, nil
+	}
+	return todos[rand.Intn(len(todos))], nil
 }

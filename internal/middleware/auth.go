@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"ToDoList/internal/utils"
+	"errors"
 	"net/http"
 	"strings"
 
@@ -46,8 +47,36 @@ func AuthMiddleware() gin.HandlerFunc {
 				Content: err.Error(),
 			})
 			logrus.Error("解析token时出错，", err)
+			ctx.Abort()
+			return
 		}
+		// logrus.WithFields(logrus.Fields{
+		// 	"uuid":    claims.Uuid,
+		// 	"isAdmin": claims.IsAdmin,
+		// 	"token":   token[:10] + "...",
+		// }).Info("Token validated successfully")
 		ctx.Set("uuid", claims.Uuid)
 		ctx.Set("isAdmin", claims.IsAdmin)
 	}
+}
+
+func GetHeader(ctx *gin.Context) (string, bool, error) {
+	uuid, existent := ctx.Get("uuid")
+	if !existent {
+		ctx.JSON(http.StatusUnauthorized, Response{
+			Message: "err",
+			Content: "不存在uuid",
+		})
+		return "", false, errors.New("不存在的uuid")
+	}
+	isAdmin, existent := ctx.Get("isAdmin")
+	if !existent {
+		ctx.JSON(http.StatusUnauthorized, Response{
+			Message: "err",
+			Content: "错误的信息",
+		})
+		return "", false, errors.New("不存在管理员信息")
+	}
+	// logrus.Info(uuid.(string))
+	return uuid.(string), isAdmin.(bool), nil
 }
