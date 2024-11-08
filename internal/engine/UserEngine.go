@@ -4,6 +4,7 @@ import (
 	data "ToDoList/internal/Data"
 	user "ToDoList/internal/User"
 	"ToDoList/internal/email"
+	"ToDoList/internal/middleware"
 	"ToDoList/internal/utils"
 	"net/http"
 	"os"
@@ -16,6 +17,7 @@ import (
 // EnginHandler gin框架下的控制器
 type EngineHandler struct {
 	TodoManager data.HandleTodo
+	UserManager user.UserHandle
 }
 
 // Response 标准回应结构体
@@ -40,13 +42,6 @@ type EmailVerification struct {
 	Email            string `json:"email"`
 	VerificationCode string `json:"verification_code"`
 	Password         string `json:"password"`
-}
-
-type NetUserHandler interface {
-	AddUser()
-	CheckUser()
-	DeleteUser()
-	UpdateUser()
 }
 
 // NewEngineHandler 返回一个EngineHandler
@@ -257,4 +252,46 @@ func (eh *EngineHandler) SignIn(ctx *gin.Context) {
 		})
 		return
 	}
+}
+
+// DeleteUser 删除用户
+func (eh *EngineHandler) AdminDeleteUser(ctx *gin.Context) {
+	uuid, _, err := middleware.GetHeader(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	if err := eh.UserManager.DeleteUser(uuid); err != nil {
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, Response{
+		Message: "ok",
+		Content: "删除成功",
+	})
+}
+
+// DeleteUser 删除用户
+func (eh *EngineHandler) DeleteUser(ctx *gin.Context) {
+	uuid, _ := ctx.Params.Get("uuid")
+	if err := eh.UserManager.DeleteUser(uuid); err != nil {
+		ctx.JSON(http.StatusInternalServerError, Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, Response{
+		Message: "ok",
+		Content: "删除成功",
+	})
 }

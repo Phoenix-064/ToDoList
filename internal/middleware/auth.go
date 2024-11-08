@@ -80,3 +80,27 @@ func GetHeader(ctx *gin.Context) (string, bool, error) {
 	// logrus.Info(uuid.(string))
 	return uuid.(string), isAdmin.(bool), nil
 }
+
+// AdministratorVerifiesMiddleware 管理员验证中间件
+func AdministratorVerifiesMiddleware() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		_, isAdmin, err := GetHeader(ctx)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, Response{
+				Message: "err",
+				Content: err.Error(),
+			})
+			logrus.Error(err)
+			ctx.Abort()
+			return
+		}
+		if isAdmin != true {
+			ctx.JSON(http.StatusUnauthorized, Response{
+				Message: "err",
+				Content: "没有访问权限",
+			})
+			ctx.Abort()
+			return
+		}
+	}
+}
