@@ -23,7 +23,7 @@ func (gs GinService) SetUpRoutes(e *gin.Engine, eh engine.EngineHandler) {
 			User.POST("/signin", eh.SignIn)
 			User.POST("/signup/send-code", eh.SendVerificationCode)
 			User.POST("/signup", eh.SignUp)
-			User.POST("/delete", eh.DeleteUser)
+			User.POST("/delete", middleware.AuthMiddleware(), eh.DeleteUser)
 		}
 		ToDoList.GET("", middleware.AuthMiddleware(), eh.GetAllTodo)
 		ToDoList.POST("/add", middleware.AuthMiddleware(), eh.CreateTodo)
@@ -32,7 +32,7 @@ func (gs GinService) SetUpRoutes(e *gin.Engine, eh engine.EngineHandler) {
 		ToDoList.GET("/random", middleware.AuthMiddleware(), eh.GetATodo)
 		Admin := ToDoList.Group("/admin")
 		{
-			Admin.POST("/delete", middleware.AuthMiddleware(), middleware.AdministratorVerifiesMiddleware(), eh.AdminDeleteUser)
+			Admin.POST("/delete", middleware.AuthMiddleware(), middleware.AdministratorVerifiesMiddleware(), eh.DeleteUser)
 		}
 	}
 }

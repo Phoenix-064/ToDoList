@@ -2,13 +2,11 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/sirupsen/logrus"
 )
 
 type Claims struct {
@@ -43,7 +41,7 @@ func (th TokenHandler) GenerateToken(uuid string, isAdmin bool) (string, error) 
 			ExpiresAt: expirationTime,
 		},
 	}
-	logrus.WithField("claims", fmt.Sprintf("%+v", claims)).Info("Created claims")
+	// logrus.WithField("claims", fmt.Sprintf("%+v", claims)).Info("Created claims")
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(th.JwtKey)
 	if err != nil {

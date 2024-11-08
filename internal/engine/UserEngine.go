@@ -5,6 +5,7 @@ import (
 	user "ToDoList/internal/User"
 	"ToDoList/internal/email"
 	"ToDoList/internal/middleware"
+	"ToDoList/internal/models"
 	"ToDoList/internal/utils"
 	"net/http"
 	"os"
@@ -18,12 +19,6 @@ import (
 type EngineHandler struct {
 	TodoManager data.HandleTodo
 	UserManager user.UserHandle
-}
-
-// Response 标准回应结构体
-type Response struct {
-	Message string      `json:"message"`
-	Content interface{} `json:"content"`
 }
 
 // UserRequest 标准用户信息请求体
@@ -49,6 +44,7 @@ func NewEngineHandler() EngineHandler {
 	dir, _ := os.Getwd()
 	return EngineHandler{
 		TodoManager: data.NewTodoManager(filepath.Join(dir, "TodoData")),
+		UserManager: user.NewUserManager(),
 	}
 }
 
@@ -72,7 +68,7 @@ func (eh *EngineHandler) SendVerificationCode(ctx *gin.Context) {
 	em := newEmail()
 	err := ctx.ShouldBind(&em)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -83,13 +79,13 @@ func (eh *EngineHandler) SendVerificationCode(ctx *gin.Context) {
 	uh = user.NewUserManager()
 	_, err = uh.CheckEmail(em.Email)
 	if err == nil { // 找到了用户
-		ctx.JSON(http.StatusUnauthorized, Response{
+		ctx.JSON(http.StatusUnauthorized, models.Response{
 			Message: "err",
 			Content: "已有的邮箱",
 		})
 		return
 	} else if err.Error() != "没有此用户" { // 判断是否为服务器出错
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -101,13 +97,13 @@ func (eh *EngineHandler) SendVerificationCode(ctx *gin.Context) {
 	err = vcm.CheckTheSendingFrequency(em.Email)
 	if err != nil {
 		if err.Error() == "创建验证码时间间隔小于一分钟" {
-			ctx.JSON(http.StatusUnauthorized, Response{
+			ctx.JSON(http.StatusUnauthorized, models.Response{
 				Message: "err",
 				Content: err.Error(),
 			})
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -117,14 +113,14 @@ func (eh *EngineHandler) SendVerificationCode(ctx *gin.Context) {
 	emailManager := email.NewEmailManager()
 	err = emailManager.ConfigureEmail(em.Email)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
 		logrus.Error("发送邮件时失败，", err)
 		return
 	}
-	ctx.JSON(http.StatusOK, Response{
+	ctx.JSON(http.StatusOK, models.Response{
 		Message: "ok",
 		Content: "发送验证码成功",
 	})
@@ -136,7 +132,7 @@ func (eh *EngineHandler) SignUp(ctx *gin.Context) {
 	ev := newEmailVerification()
 	err := ctx.ShouldBind(&ev)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -148,13 +144,13 @@ func (eh *EngineHandler) SignUp(ctx *gin.Context) {
 	err = vcm.CheckTheVerificationCode(ev.Email, ev.VerificationCode)
 	if err != nil {
 		if err.Error() != "错误的验证码" {
-			ctx.JSON(http.StatusUnauthorized, Response{
+			ctx.JSON(http.StatusUnauthorized, models.Response{
 				Message: "err",
 				Content: err.Error(),
 			})
 			return
 		}
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -164,7 +160,7 @@ func (eh *EngineHandler) SignUp(ctx *gin.Context) {
 	uh = user.NewUserManager()
 	u, err := user.NewUser()
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -176,13 +172,13 @@ func (eh *EngineHandler) SignUp(ctx *gin.Context) {
 	err = uh.AddUser(u)
 	if err != nil {
 		if err.Error() == "没有此用户" {
-			ctx.JSON(http.StatusUnauthorized, Response{
+			ctx.JSON(http.StatusUnauthorized, models.Response{
 				Message: "err",
 				Content: "没有此用户",
 			})
 			return
 		} else {
-			ctx.JSON(http.StatusInternalServerError, Response{
+			ctx.JSON(http.StatusInternalServerError, models.Response{
 				Message: "err",
 				Content: err.Error(),
 			})
@@ -190,7 +186,7 @@ func (eh *EngineHandler) SignUp(ctx *gin.Context) {
 			return
 		}
 	}
-	ctx.JSON(http.StatusOK, Response{
+	ctx.JSON(http.StatusOK, models.Response{
 		Message: "ok",
 		Content: "",
 	})
@@ -201,25 +197,23 @@ func (eh *EngineHandler) SignIn(ctx *gin.Context) {
 	uq := newUserRequest()
 	err := ctx.ShouldBind(&uq)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
 		logrus.Error("连接结构体User失败，", err)
 		return
 	}
-	var uh user.UserHandle
-	uh = user.NewUserManager()
-	u, err := uh.CheckEmail(uq.Email)
+	u, err := eh.UserManager.CheckEmail(uq.Email)
 	if err != nil { // 如果有错误返回，判断返回类型
 		if err.Error() == "没有此用户" {
-			ctx.JSON(http.StatusUnauthorized, Response{
+			ctx.JSON(http.StatusUnauthorized, models.Response{
 				Message: "err",
 				Content: "没有此用户",
 			})
 			return
 		} else { // 错误类型不为用户不存在，则应该是出错了
-			ctx.JSON(http.StatusInternalServerError, Response{
+			ctx.JSON(http.StatusInternalServerError, models.Response{
 				Message: "err",
 				Content: err.Error(),
 			})
@@ -232,13 +226,13 @@ func (eh *EngineHandler) SignIn(ctx *gin.Context) {
 		th := utils.NewTokenHandler()
 		tokenString, err := th.GenerateToken(u.Uuid, u.IsAdmin)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, Response{
+			ctx.JSON(http.StatusInternalServerError, models.Response{
 				Message: "err",
 				Content: err.Error(),
 			})
 			return
 		}
-		ctx.JSON(http.StatusOK, Response{
+		ctx.JSON(http.StatusOK, models.Response{
 			Message: "ok",
 			Content: gin.H{
 				"token": tokenString,
@@ -246,7 +240,7 @@ func (eh *EngineHandler) SignIn(ctx *gin.Context) {
 		})
 		return
 	} else {
-		ctx.JSON(http.StatusUnauthorized, Response{
+		ctx.JSON(http.StatusUnauthorized, models.Response{
 			Message: "err",
 			Content: "密码错误",
 		})
@@ -254,11 +248,11 @@ func (eh *EngineHandler) SignIn(ctx *gin.Context) {
 	}
 }
 
-// DeleteUser 删除用户
+// AdminDeleteUser 删除用户
 func (eh *EngineHandler) AdminDeleteUser(ctx *gin.Context) {
 	uuid, _, err := middleware.GetHeader(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -266,14 +260,14 @@ func (eh *EngineHandler) AdminDeleteUser(ctx *gin.Context) {
 		return
 	}
 	if err := eh.UserManager.DeleteUser(uuid); err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
 		logrus.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, Response{
+	ctx.JSON(http.StatusOK, models.Response{
 		Message: "ok",
 		Content: "删除成功",
 	})
@@ -281,16 +275,28 @@ func (eh *EngineHandler) AdminDeleteUser(ctx *gin.Context) {
 
 // DeleteUser 删除用户
 func (eh *EngineHandler) DeleteUser(ctx *gin.Context) {
-	uuid, _ := ctx.Params.Get("uuid")
-	if err := eh.UserManager.DeleteUser(uuid); err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+	uuid, _, err := middleware.GetHeader(ctx)
+	logrus.Info(uuid)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
 		logrus.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, Response{
+	var uh user.UserHandle
+	uh = user.NewUserManager()
+	err = uh.DeleteUser(uuid)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, models.Response{
 		Message: "ok",
 		Content: "删除成功",
 	})

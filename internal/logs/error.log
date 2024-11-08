@@ -18,3 +18,9 @@ time="2024-11-08T11:01:14+08:00" level=error msg="解析token时出错，invalid
 time="2024-11-08T13:04:08+08:00" level=error msg="绑定结构体失败，json: cannot unmarshal object into Go value of type []data.Todo" appName=ToDoList
 time="2024-11-08T13:08:19+08:00" level=error msg="绑定结构体失败，json: cannot unmarshal object into Go value of type []data.Todo" appName=ToDoList
 time="2024-11-08T13:18:36+08:00" level=error msg="绑定结构体失败，json: cannot unmarshal object into Go value of type []data.Todo" appName=ToDoList
+time="2024-11-08T18:22:52+08:00" level=error msg="没有此用户" appName=ToDoList
+time="2024-11-08T18:24:47+08:00" level=error msg="没有此用户" appName=ToDoList
+time="2024-11-08T18:27:17+08:00" level=error msg="没有此用户" appName=ToDoList
+time="2024-11-08T18:30:28+08:00" level=error msg="不存在的uuid" appName=ToDoList
+time="2024-11-08T18:35:45+08:00" level=error msg="不存在的uuid" appName=ToDoList
+time="2024-11-08T18:36:09+08:00" level=error msg="不存在的uuid" appName=ToDoList

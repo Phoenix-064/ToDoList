@@ -1,6 +1,7 @@
 package user
 
 import (
+	"ToDoList/internal/models"
 	"errors"
 
 	"github.com/google/uuid"
@@ -9,17 +10,9 @@ import (
 	"gorm.io/gorm"
 )
 
-// User 用户信息
-type User struct {
-	Email    string `json:"email" gorm:"column:email;not null;type:varchar(30)"`
-	Uuid     string `json:"uuid" gorm:"column:uuid;primaryKey"`
-	Password string `json:"password" gorm:"column:password;not null;type:varchar(30)"`
-	IsAdmin  bool   `json:"isAdmin" gorm:"column:isAdmin;not null;default:false"`
-}
-
 // UserList 用户列表(使用json,测试时使用)
 type UserList struct {
-	list map[string]User //[uuid]user
+	list map[string]models.User //[uuid]models.user
 }
 
 // UserManager 基于数据库的用户管理
@@ -29,21 +22,21 @@ type UserManager struct {
 
 // UserHandle 用户管理的方法
 type UserHandle interface {
-	AddUser(User) error
+	AddUser(models.User) error
 	DeleteUser(string) error
-	CheckUser(string) (User, error) //可以输入uuid,email
-	CheckUuid(uuid string) (User, error)
-	CheckEmail(email string) (User, error)
-	UpdateUser(former User, later User) error
+	CheckUser(string) (models.User, error) //可以输入uuid,email
+	CheckUuid(uuid string) (models.User, error)
+	CheckEmail(email string) (models.User, error)
+	UpdateUser(former models.User, later models.User) error
 }
 
 // newUser 返回一个新的用户
-func NewUser() (User, error) {
+func NewUser() (models.User, error) {
 	u, err := uuid.NewUUID()
 	if err != nil {
-		return User{}, err
+		return models.User{}, err
 	}
-	return User{Uuid: u.String(), IsAdmin: false}, nil
+	return models.User{Uuid: u.String(), IsAdmin: false}, nil
 }
 
 // newUserList 返回一个新的用户列表
@@ -58,7 +51,7 @@ func NewUserManager() *UserManager {
 	if err != nil {
 		logrus.Error("无法连接数据库")
 	}
-	err = db.AutoMigrate(&User{})
+	err = db.AutoMigrate(&models.User{})
 	if err != nil {
 		logrus.Error("无法连接数据库")
 	}
@@ -66,13 +59,13 @@ func NewUserManager() *UserManager {
 }
 
 // AddUser 添加用户
-func (ul *UserList) AddUser(u User) error {
+func (ul *UserList) AddUser(u models.User) error {
 	ul.list[u.Uuid] = u
 	return nil
 }
 
 // CheckUser 查找用户
-func (ul *UserList) CheckUser(c string) (User, error) {
+func (ul *UserList) CheckUser(c string) (models.User, error) {
 	u, ok := ul.list[c]
 	if ok {
 		return u, nil
@@ -97,7 +90,7 @@ func (ul *UserList) DeleteUser(c string) error {
 }
 
 // UpdateUser 更新用户信息
-func (ul *UserList) UpdateUser(former User, later User) error {
+func (ul *UserList) UpdateUser(former models.User, later models.User) error {
 	_, err := ul.CheckUser(former.Uuid)
 	if err != nil {
 		return err
@@ -107,7 +100,7 @@ func (ul *UserList) UpdateUser(former User, later User) error {
 }
 
 // AddUser 添加用户
-func (um *UserManager) AddUser(u User) error {
+func (um *UserManager) AddUser(u models.User) error {
 	_, err := um.CheckUser(u.Email)
 	if err == nil {
 		return errors.New("已有的邮箱")
@@ -120,8 +113,8 @@ func (um *UserManager) AddUser(u User) error {
 }
 
 // CheckUser 查找用户，支持查找uuid和email
-func (um *UserManager) CheckUser(c string) (User, error) {
-	var user User
+func (um *UserManager) CheckUser(c string) (models.User, error) {
+	var user models.User
 	result := um.db.Where("email = ?  OR uuid = ?", c, c).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -133,8 +126,8 @@ func (um *UserManager) CheckUser(c string) (User, error) {
 }
 
 // CheckUuid 查找Uuid
-func (um *UserManager) CheckUuid(uuid string) (User, error) {
-	var user User
+func (um *UserManager) CheckUuid(uuid string) (models.User, error) {
+	var user models.User
 	result := um.db.Where("uuid = ?", uuid).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -146,8 +139,8 @@ func (um *UserManager) CheckUuid(uuid string) (User, error) {
 }
 
 // CheckEmail 查找email
-func (um *UserManager) CheckEmail(email string) (User, error) {
-	var user User
+func (um *UserManager) CheckEmail(email string) (models.User, error) {
+	var user models.User
 	result := um.db.Where("email = ?", email).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
@@ -161,9 +154,6 @@ func (um *UserManager) CheckEmail(email string) (User, error) {
 // DeleteUser 删除用户
 func (um *UserManager) DeleteUser(c string) error {
 	temp, err := um.CheckUser(c)
-	// 如果要删除多个数据
-	// 应该进行提醒
-	//
 	if err != nil {
 		return err
 	}
@@ -172,8 +162,8 @@ func (um *UserManager) DeleteUser(c string) error {
 }
 
 // UpdateUser 更新用户数据
-func (um *UserManager) UpdateUser(former User, later User) error {
-	var u User
+func (um *UserManager) UpdateUser(former models.User, later models.User) error {
+	var u models.User
 	result := um.db.Model(&u).Where("uuid = ?", former.Uuid).Updates(later)
 	if result.Error != nil {
 		return result.Error

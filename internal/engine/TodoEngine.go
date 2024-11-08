@@ -3,6 +3,7 @@ package engine
 import (
 	data "ToDoList/internal/Data"
 	"ToDoList/internal/middleware"
+	"ToDoList/internal/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -18,7 +19,7 @@ type GetTodo struct {
 func (eh *EngineHandler) GetAllTodo(ctx *gin.Context) {
 	uuid, _, err := middleware.GetHeader(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -27,14 +28,14 @@ func (eh *EngineHandler) GetAllTodo(ctx *gin.Context) {
 	}
 	todos, err := eh.TodoManager.ReadUserTodos(uuid)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
 		logrus.Error("读取数据时出错，", err)
 		return
 	}
-	ctx.JSON(http.StatusOK, Response{
+	ctx.JSON(http.StatusOK, models.Response{
 		Message: "ok",
 		Content: gin.H{
 			"todos": todos,
@@ -46,7 +47,7 @@ func (eh *EngineHandler) GetAllTodo(ctx *gin.Context) {
 func (eh *EngineHandler) CreateTodo(ctx *gin.Context) {
 	uuid, _, err := middleware.GetHeader(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -55,7 +56,7 @@ func (eh *EngineHandler) CreateTodo(ctx *gin.Context) {
 	}
 	var tempTodo GetTodo
 	if err = ctx.ShouldBind(&tempTodo); err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -64,14 +65,14 @@ func (eh *EngineHandler) CreateTodo(ctx *gin.Context) {
 	}
 	todo := data.NewTodo(tempTodo.ID, tempTodo.Event)
 	if err = eh.TodoManager.AddTodo(uuid, *todo); err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
 		logrus.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, Response{
+	ctx.JSON(http.StatusOK, models.Response{
 		Message: "ok",
 		Content: "添加成功",
 	})
@@ -79,9 +80,9 @@ func (eh *EngineHandler) CreateTodo(ctx *gin.Context) {
 
 // SaveAllTodos 添加所有 todo
 func (eh *EngineHandler) SaveAllTodos(ctx *gin.Context) {
-	var todos []data.Todo
+	var todos []models.Todo
 	if err := ctx.ShouldBind(&todos); err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -90,7 +91,7 @@ func (eh *EngineHandler) SaveAllTodos(ctx *gin.Context) {
 	}
 	uuid, _, err := middleware.GetHeader(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -98,14 +99,14 @@ func (eh *EngineHandler) SaveAllTodos(ctx *gin.Context) {
 		return
 	}
 	if err = eh.TodoManager.SaveTheUserTodos(uuid, todos); err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
 		logrus.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, Response{
+	ctx.JSON(http.StatusOK, models.Response{
 		Message: "ok",
 		Content: "保存成功",
 	})
@@ -115,16 +116,16 @@ func (eh *EngineHandler) SaveAllTodos(ctx *gin.Context) {
 func (eh *EngineHandler) DeleteTodo(ctx *gin.Context) {
 	uuid, _, err := middleware.GetHeader(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
 		logrus.Error(err)
 		return
 	}
-	var tempTodo data.Todo
+	var tempTodo models.Todo
 	if err = ctx.ShouldBind(&tempTodo); err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -132,14 +133,14 @@ func (eh *EngineHandler) DeleteTodo(ctx *gin.Context) {
 		return
 	}
 	if err = eh.TodoManager.DeleteTodo(uuid, tempTodo); err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
 		logrus.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, Response{
+	ctx.JSON(http.StatusOK, models.Response{
 		Message: "ok",
 		Content: "",
 	})
@@ -149,7 +150,7 @@ func (eh *EngineHandler) DeleteTodo(ctx *gin.Context) {
 func (eh *EngineHandler) GetATodo(ctx *gin.Context) {
 	uuid, _, err := middleware.GetHeader(ctx)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
@@ -158,14 +159,14 @@ func (eh *EngineHandler) GetATodo(ctx *gin.Context) {
 	}
 	todo, err := eh.TodoManager.RandomlySelectTodo(uuid)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, Response{
+		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
 		})
 		logrus.Error(err)
 		return
 	}
-	ctx.JSON(http.StatusOK, Response{
+	ctx.JSON(http.StatusOK, models.Response{
 		Message: "ok",
 		Content: todo,
 	})
