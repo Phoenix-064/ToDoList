@@ -171,3 +171,34 @@ func (eh *EngineHandler) GetATodo(ctx *gin.Context) {
 		Content: todo,
 	})
 }
+
+// 更新一个 todo
+func (eh *EngineHandler) UpdateTodo(ctx *gin.Context) {
+	uuid, _, err := middleware.GetHeader(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	var todo models.Todo
+	if err := ctx.ShouldBind(&todo); err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	todoID := ctx.Query("id")
+	if err = eh.TodoManager.UpdateTodo(uuid, todoID, todo); err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+}
