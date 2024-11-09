@@ -213,6 +213,7 @@ func (m *TodoGormManager) RandomlySelectTodo(uuid string) (models.Todo, error) {
 
 // UpdateTodo 更新一个 todo
 func (m *TodoGormManager) UpdateTodo(userUUID string, todoID string, todo models.Todo) error {
+	todo.UserUuid = userUUID
 	if result := m.db.Where("user_uuid = ? AND id = ?", userUUID, todoID).Updates(todo); result.Error != nil {
 		return result.Error
 	}

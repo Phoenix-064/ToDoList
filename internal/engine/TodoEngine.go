@@ -192,8 +192,7 @@ func (eh *EngineHandler) UpdateTodo(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	todoID := ctx.Query("id")
-	if err = eh.TodoManager.UpdateTodo(uuid, todoID, todo); err != nil {
+	if err = eh.TodoManager.UpdateTodo(uuid, todo.ID, todo); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),

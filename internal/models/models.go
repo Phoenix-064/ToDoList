@@ -6,7 +6,8 @@ type User struct {
 	Uuid     string `json:"uuid" gorm:"column:uuid;primaryKey"`
 	Password string `json:"password" gorm:"column:password;not null;type:varchar(30)"`
 	IsAdmin  bool   `json:"isAdmin" gorm:"column:is_admin;not null;default:false"`
-	Todo     []Todo `json:"todos" gorm:"foreignKey:user_uuid;references:Uuid"`
+	Todos    []Todo `json:"todos" gorm:"foreignKey:user_uuid;references:Uuid"`
+	Wishes   []Wish `json:"wishes" gorm:"foreignKey:user_uuid;references:Uuid"`
 }
 
 // Todo 待办
@@ -17,7 +18,6 @@ type Todo struct {
 	Completed       bool   `json:"completed" gorm:"column:completed"`
 	IsCycle         bool   `json:"is_cycle" gorm:"column:is_cycle"`
 	Description     string `json:"description" gorm:"column:description"`
-	IsWish          bool   `json:"is_wish" gorm:"column:is_wish"`
 	ImportanceLevel int    `json:"importance_level" gorm:"column:importance_level"`
 }
 
@@ -25,4 +25,14 @@ type Todo struct {
 type Response struct {
 	Message string      `json:"message"`
 	Content interface{} `json:"content"`
+}
+
+// Wish 希望不要加班了
+type Wish struct {
+	ID          string `json:"id" gorm:"column:id;primaryKey"`
+	UserUuid    string `json:"user_uuid" gorm:"column:user_uuid"`
+	Event       string `json:"event" gorm:"column:event"`
+	IsCycle     bool   `json:"is_cycle" gorm:"column:is_cycle"`
+	Description string `json:"description" gorm:"column:description"`
+	IsShared    bool   `json:"is_wish" gorm:"column:is_shared"`
 }

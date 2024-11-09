@@ -16,7 +16,8 @@ import (
 // EnginHandler gin框架下的控制器
 type EngineHandler struct {
 	TodoManager data.HandleTodo
-	UserManager user.UserHandle
+	UserManager user.HandleUser
+	WishManager data.HandleWish
 }
 
 // UserRequest 标准用户信息请求体
@@ -72,7 +73,7 @@ func (eh *EngineHandler) SendVerificationCode(ctx *gin.Context) {
 		logrus.Error("无法连接结构体，", err)
 		return
 	}
-	var uh user.UserHandle
+	var uh user.HandleUser
 	uh = user.NewUserManager()
 	_, err = uh.CheckEmail(em.Email)
 	if err == nil { // 找到了用户
@@ -153,8 +154,6 @@ func (eh *EngineHandler) SignUp(ctx *gin.Context) {
 		})
 		return
 	}
-	var uh user.UserHandle
-	uh = user.NewUserManager()
 	u, err := user.NewUser()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
@@ -166,7 +165,7 @@ func (eh *EngineHandler) SignUp(ctx *gin.Context) {
 	}
 	u.Email = ev.Email
 	u.Password = ev.Password
-	err = uh.AddUser(u)
+	err = eh.UserManager.AddUser(u)
 	if err != nil {
 		if err.Error() == "没有此用户" {
 			ctx.JSON(http.StatusUnauthorized, models.Response{
@@ -282,9 +281,7 @@ func (eh *EngineHandler) DeleteUser(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	var uh user.UserHandle
-	uh = user.NewUserManager()
-	err = uh.DeleteUser(uuid)
+	err = eh.UserManager.DeleteUser(uuid)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",

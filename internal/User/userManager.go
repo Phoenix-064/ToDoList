@@ -20,8 +20,8 @@ type UserManager struct {
 	db *gorm.DB
 }
 
-// UserHandle 用户管理的方法
-type UserHandle interface {
+// HandleUser 用户管理的方法
+type HandleUser interface {
 	AddUser(models.User) error
 	DeleteUser(string) error
 	CheckUser(string) (models.User, error) //可以输入uuid,email

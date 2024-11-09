@@ -25,15 +25,19 @@ func (gs GinService) SetUpRoutes(e *gin.Engine, eh engine.EngineHandler) {
 			User.POST("/signup", eh.SignUp)
 			User.POST("/delete", middleware.AuthMiddleware(), eh.DeleteUser)
 		}
-		ToDoList.GET("", middleware.AuthMiddleware(), eh.GetAllTodo)
-		ToDoList.POST("/add", middleware.AuthMiddleware(), eh.CreateTodo)
-		ToDoList.POST("/updateImportanceLevel", middleware.AuthMiddleware(), eh.SaveAllTodos)
-		ToDoList.POST("delete", middleware.AuthMiddleware(), eh.DeleteTodo)
-		ToDoList.GET("/random", middleware.AuthMiddleware(), eh.GetATodo)
-		ToDoList.POST("/update", middleware.AuthMiddleware(), eh.UpdateTodo)
 		Admin := ToDoList.Group("/admin")
 		{
 			Admin.POST("/delete", middleware.AuthMiddleware(), middleware.AdministratorVerifiesMiddleware(), eh.DeleteUser)
 		}
+		Wish := ToDoList.Group("/wish")
+		{
+			Wish.GET("", middleware.AuthMiddleware())
+			Wish.GET("/random")
+		}
+		ToDoList.GET("", middleware.AuthMiddleware(), eh.GetAllTodo)
+		ToDoList.POST("/add", middleware.AuthMiddleware(), eh.CreateTodo)
+		ToDoList.POST("/updateImportanceLevel", middleware.AuthMiddleware(), eh.SaveAllTodos)
+		ToDoList.POST("delete", middleware.AuthMiddleware(), eh.DeleteTodo)
+		ToDoList.POST("/update", middleware.AuthMiddleware(), eh.UpdateTodo)
 	}
 }
