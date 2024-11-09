@@ -10,8 +10,6 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/sirupsen/logrus"
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -27,11 +25,11 @@ type TodoGormManager struct {
 
 type HandleTodo interface {
 	ReadUserTodos(uuid string) ([]models.Todo, error)
-	SaveTheUserTodos(uuid string, todos []models.Todo) error
-	AddTodo(uuid string, todo models.Todo) error
+	SaveTheUserTodos(uuid string, todos []*models.Todo) error
+	AddTodo(uuid string, todo *models.Todo) error
 	DeleteTodo(uuid string, todoID string) error
 	RandomlySelectTodo(uuid string) (models.Todo, error)
-	UpdateTodo(userUUID string, todoID string, todo models.Todo) error
+	UpdateTodo(userUUID string, todoID string, todo *models.Todo) error
 }
 
 // NewTodo 建立一个新的待办事项
@@ -45,16 +43,7 @@ func NewTodoManager(dir string) *TodoManager {
 }
 
 // NewTodoGormManager 返回一个新的 TodoGormManager
-func NewTodoGormManager() *TodoGormManager {
-	dsn := "root:123@tcp(127.0.0.1:3306)/todoList?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		logrus.Error("无法连接数据库")
-	}
-	err = db.AutoMigrate(&models.Todo{})
-	if err != nil {
-		logrus.Error("无法连接数据库")
-	}
+func NewTodoGormManager(db *gorm.DB) *TodoGormManager {
 	return &TodoGormManager{db: db}
 }
 
@@ -162,7 +151,7 @@ func (m *TodoGormManager) ReadUserTodos(uuid string) ([]models.Todo, error) {
 }
 
 // SaveTheUserTodos 保存所有 todos (会删除之前的所有 todos)
-func (m *TodoGormManager) SaveTheUserTodos(uuid string, todos []models.Todo) error {
+func (m *TodoGormManager) SaveTheUserTodos(uuid string, todos []*models.Todo) error {
 	// 使用事务，确保操作原子性
 	return m.db.Transaction(func(tx *gorm.DB) error {
 		if result := tx.Where("user_uuid = ?", uuid).Delete(&models.Todo{}); result.Error != nil {
@@ -184,7 +173,7 @@ func (m *TodoGormManager) SaveTheUserTodos(uuid string, todos []models.Todo) err
 }
 
 // AddTodo 添加一个 todo
-func (m *TodoGormManager) AddTodo(uuid string, todo models.Todo) error {
+func (m *TodoGormManager) AddTodo(uuid string, todo *models.Todo) error {
 	todo.UserUuid = uuid
 	if result := m.db.Create(&todo); result.Error != nil {
 		return result.Error
@@ -212,7 +201,7 @@ func (m *TodoGormManager) RandomlySelectTodo(uuid string) (models.Todo, error) {
 }
 
 // UpdateTodo 更新一个 todo
-func (m *TodoGormManager) UpdateTodo(userUUID string, todoID string, todo models.Todo) error {
+func (m *TodoGormManager) UpdateTodo(userUUID string, todoID string, todo *models.Todo) error {
 	todo.UserUuid = userUUID
 	if result := m.db.Where("user_uuid = ? AND id = ?", userUUID, todoID).Updates(todo); result.Error != nil {
 		return result.Error

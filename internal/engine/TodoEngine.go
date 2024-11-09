@@ -64,7 +64,7 @@ func (eh *EngineHandler) CreateTodo(ctx *gin.Context) {
 		return
 	}
 	todo := data.NewTodo(tempTodo.ID, tempTodo.Event)
-	if err = eh.TodoManager.AddTodo(uuid, *todo); err != nil {
+	if err = eh.TodoManager.AddTodo(uuid, todo); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
@@ -80,7 +80,7 @@ func (eh *EngineHandler) CreateTodo(ctx *gin.Context) {
 
 // SaveAllTodos 添加所有 todo
 func (eh *EngineHandler) SaveAllTodos(ctx *gin.Context) {
-	var todos []models.Todo
+	todos := []*models.Todo{}
 	if err := ctx.ShouldBind(&todos); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
@@ -183,8 +183,8 @@ func (eh *EngineHandler) UpdateTodo(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	var todo models.Todo
-	if err := ctx.ShouldBind(&todo); err != nil {
+	todo := &models.Todo{}
+	if err := ctx.ShouldBind(todo); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),

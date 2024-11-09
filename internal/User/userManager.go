@@ -5,8 +5,6 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
 
@@ -45,16 +43,7 @@ func NewUserList() *UserList {
 }
 
 // NewUserManager 返回一个新的用户管理系统
-func NewUserManager() *UserManager {
-	dsn := "root:123@tcp(127.0.0.1:3306)/todoList?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
-	if err != nil {
-		logrus.Error("无法连接数据库")
-	}
-	err = db.AutoMigrate(&models.User{})
-	if err != nil {
-		logrus.Error("无法连接数据库")
-	}
+func NewUserManager(db *gorm.DB) *UserManager {
 	return &UserManager{db: db}
 }
 

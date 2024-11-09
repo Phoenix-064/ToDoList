@@ -1,6 +1,7 @@
 package main
 
 import (
+	"ToDoList/internal/db"
 	"ToDoList/internal/engine"
 	"ToDoList/internal/logs"
 	"ToDoList/internal/service"
@@ -13,7 +14,11 @@ func main() {
 	var setLog logs.AddLog
 	setLog = logs.NewDefaultLog()
 	setLog.SetUpLogs()
-	eh := engine.NewEngineHandler()
+	db, err := db.NewDataBase()
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	eh := engine.NewEngineHandler(db.DB)
 	e := gin.New()
 	var sh service.GinService
 	sh.SetUpRoutes(e, eh)

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 // EnginHandler gin框架下的控制器
@@ -39,10 +40,10 @@ type EmailVerification struct {
 }
 
 // NewEngineHandler 返回一个EngineHandler
-func NewEngineHandler() EngineHandler {
+func NewEngineHandler(db *gorm.DB) EngineHandler {
 	return EngineHandler{
-		TodoManager: data.NewTodoGormManager(),
-		UserManager: user.NewUserManager(),
+		TodoManager: data.NewTodoGormManager(db),
+		UserManager: user.NewUserManager(db),
 	}
 }
 
@@ -73,9 +74,7 @@ func (eh *EngineHandler) SendVerificationCode(ctx *gin.Context) {
 		logrus.Error("无法连接结构体，", err)
 		return
 	}
-	var uh user.HandleUser
-	uh = user.NewUserManager()
-	_, err = uh.CheckEmail(em.Email)
+	_, err = eh.UserManager.CheckEmail(em.Email)
 	if err == nil { // 找到了用户
 		ctx.JSON(http.StatusUnauthorized, models.Response{
 			Message: "err",
