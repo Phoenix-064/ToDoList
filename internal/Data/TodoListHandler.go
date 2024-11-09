@@ -3,6 +3,7 @@ package data
 import (
 	"ToDoList/internal/models"
 	"encoding/json"
+	"errors"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -28,8 +29,9 @@ type HandleTodo interface {
 	ReadUserTodos(uuid string) ([]models.Todo, error)
 	SaveTheUserTodos(uuid string, todos []models.Todo) error
 	AddTodo(uuid string, todo models.Todo) error
-	DeleteTodo(uuid string, todo models.Todo) error
+	DeleteTodo(uuid string, todoID string) error
 	RandomlySelectTodo(uuid string) (models.Todo, error)
+	UpdateTodo(userUUID string, todoID string, todo models.Todo) error
 }
 
 // NewTodo 建立一个新的待办事项
@@ -123,14 +125,14 @@ func (m *TodoManager) AddTodo(uuid string, todo models.Todo) error {
 }
 
 // DeleteTodo 删除一个todo
-func (m *TodoManager) DeleteTodo(uuid string, todo models.Todo) error {
+func (m *TodoManager) DeleteTodo(uuid string, todoID string) error {
 	todos, err := m.ReadUserTodos(uuid)
 	if err != nil {
 		return err
 	}
 	newTodos := make([]models.Todo, 0, len(todos))
 	for _, i := range todos {
-		if i != todo {
+		if i.ID != todoID {
 			newTodos = append(newTodos, i)
 		}
 	}
@@ -151,17 +153,68 @@ func (m *TodoManager) RandomlySelectTodo(uuid string) (models.Todo, error) {
 
 // ReadUserTodo 读取用户todos
 func (m *TodoGormManager) ReadUserTodos(uuid string) ([]models.Todo, error) {
-	var user models.User
-	result := m.db.Preload("Todos").First(&user, "uuid = ?", uuid)
+	var todos []models.Todo
+	result := m.db.Where("user_id = ?", uuid).Find(&todos)
 	if result.Error != nil {
 		return []models.Todo{}, result.Error
 	}
-	todos := user.Todo
 	return todos, nil
 }
 
-// SaveTheUserTodos 保存所有todos
+// SaveTheUserTodos 保存所有 todos (会删除之前的所有 todos)
 func (m *TodoGormManager) SaveTheUserTodos(uuid string, todos []models.Todo) error {
+	// 使用事务，确保操作原子性
+	return m.db.Transaction(func(tx *gorm.DB) error {
+		if result := tx.Where("user_uuid = ?", uuid).Delete(&models.Todo{}); result.Error != nil {
+			return result.Error
+		}
+		// 如果提交结果为空，直接返回
+		if len(todos) == 0 {
+			return nil
+		}
+		// 给 todos 的 uuid 字段赋值
+		for i := range todos {
+			todos[i].UserUuid = uuid
+		}
+		if result := m.db.Create(&todos); result.Error != nil {
+			return result.Error
+		}
+		return nil
+	})
+}
 
+// AddTodo 添加一个 todo
+func (m *TodoGormManager) AddTodo(uuid string, todo models.Todo) error {
+	todo.UserUuid = uuid
+	if result := m.db.Create(&todo); result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+// DeleteTodo 删除一个 todo
+func (m *TodoGormManager) DeleteTodo(uuid string, todoID string) error {
+	if result := m.db.Where("user_uuid = ? AND id = ?", uuid, todoID).Delete(&models.Todo{}); result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+// RandomlySelectTodo 获取一个随机 todo
+func (m *TodoGormManager) RandomlySelectTodo(uuid string) (models.Todo, error) {
+	var todo models.Todo
+	if result := m.db.Where("user_uuid = ? is_wish = ?", uuid, true).Order("RANDOM()").First(&todo); result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return models.Todo{}, result.Error
+		}
+	}
+	return todo, nil
+}
+
+// UpdateTodo 更新一个 todo
+func (m *TodoGormManager) UpdateTodo(userUUID string, todoID string, todo models.Todo) error {
+	if result := m.db.Where("user_uuid = ? AND id = ?", userUUID, todoID).Updates(todo); result.Error != nil {
+		return result.Error
+	}
 	return nil
 }

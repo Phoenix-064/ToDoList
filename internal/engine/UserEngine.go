@@ -8,8 +8,6 @@ import (
 	"ToDoList/internal/models"
 	"ToDoList/internal/utils"
 	"net/http"
-	"os"
-	"path/filepath"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -41,9 +39,8 @@ type EmailVerification struct {
 
 // NewEngineHandler 返回一个EngineHandler
 func NewEngineHandler() EngineHandler {
-	dir, _ := os.Getwd()
 	return EngineHandler{
-		TodoManager: data.NewTodoManager(filepath.Join(dir, "TodoData")),
+		TodoManager: data.NewTodoGormManager(),
 		UserManager: user.NewUserManager(),
 	}
 }

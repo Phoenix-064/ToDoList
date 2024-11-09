@@ -132,7 +132,7 @@ func (eh *EngineHandler) DeleteTodo(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	if err = eh.TodoManager.DeleteTodo(uuid, tempTodo); err != nil {
+	if err = eh.TodoManager.DeleteTodo(uuid, tempTodo.ID); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
