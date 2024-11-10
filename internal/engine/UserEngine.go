@@ -44,6 +44,7 @@ func NewEngineHandler(db *gorm.DB) EngineHandler {
 	return EngineHandler{
 		TodoManager: data.NewTodoGormManager(db),
 		UserManager: user.NewUserManager(db),
+		WishManager: data.NewWishManager(db),
 	}
 }
 

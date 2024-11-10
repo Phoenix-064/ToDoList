@@ -31,8 +31,12 @@ func (gs GinService) SetUpRoutes(e *gin.Engine, eh engine.EngineHandler) {
 		}
 		Wish := ToDoList.Group("/wish")
 		{
-			Wish.GET("", middleware.AuthMiddleware())
-			Wish.GET("/random")
+			Wish.GET("", middleware.AuthMiddleware(), eh.GetWishes)
+			Wish.GET("/random", middleware.AuthMiddleware(), eh.RandomlySelectWish)
+			Wish.POST("/delete", middleware.AuthMiddleware(), eh.DeleteWish)
+			Wish.POST("/update", middleware.AuthMiddleware(), eh.UpdateWish)
+			Wish.POST("/add", middleware.AuthMiddleware(), eh.AddWish)
+			Wish.POST("/add-todo", middleware.AuthMiddleware(), eh.AddToTodo)
 		}
 		ToDoList.GET("", middleware.AuthMiddleware(), eh.GetAllTodo)
 		ToDoList.POST("/add", middleware.AuthMiddleware(), eh.CreateTodo)
