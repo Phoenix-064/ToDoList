@@ -16,9 +16,10 @@ import (
 
 // EnginHandler gin框架下的控制器
 type EngineHandler struct {
-	TodoManager data.HandleTodo
-	UserManager user.HandleUser
-	WishManager data.HandleWish
+	TodoManager          data.HandleTodo
+	UserManager          user.HandleUser
+	WishManager          data.HandleWish
+	CommunityWishManager data.HandleCommunityWishes
 }
 
 // UserRequest 标准用户信息请求体
@@ -47,9 +48,10 @@ type ChangePasswordRequest struct {
 // NewEngineHandler 返回一个EngineHandler
 func NewEngineHandler(db *gorm.DB) EngineHandler {
 	return EngineHandler{
-		TodoManager: data.NewTodoGormManager(db),
-		UserManager: user.NewUserManager(db),
-		WishManager: data.NewWishManager(db),
+		TodoManager:          data.NewTodoGormManager(db),
+		UserManager:          user.NewUserManager(db),
+		WishManager:          data.NewWishManager(db),
+		CommunityWishManager: data.NewCommunityWishesHandler(db),
 	}
 }
 
@@ -328,7 +330,6 @@ func (eh *EngineHandler) ChangePassword(ctx *gin.Context) {
 			Message: "err",
 			Content: err.Error(),
 		})
-		logrus.Error(err)
 		return
 	}
 	if user.Password != change.FormerPassword {
@@ -336,6 +337,7 @@ func (eh *EngineHandler) ChangePassword(ctx *gin.Context) {
 			Message: "err",
 			Content: "错误的原密码",
 		})
+		logrus.Info(user.Password)
 		return
 	}
 	former := models.User{

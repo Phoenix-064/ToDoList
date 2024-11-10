@@ -44,5 +44,11 @@ func (gs GinService) SetUpRoutes(e *gin.Engine, eh engine.EngineHandler) {
 		ToDoList.POST("/updateImportanceLevel", middleware.AuthMiddleware(), eh.SaveAllTodos)
 		ToDoList.POST("delete", middleware.AuthMiddleware(), eh.DeleteTodo)
 		ToDoList.POST("/update", middleware.AuthMiddleware(), eh.UpdateTodo)
+		Community := ToDoList.Group("/community")
+		{
+			Community.GET("", eh.GetCommunityWishes)
+			Community.POST("/add-viewed", eh.AddView)
+			Community.POST("/add-to-wish", middleware.AuthMiddleware(), eh.AddToWish)
+		}
 	}
 }
