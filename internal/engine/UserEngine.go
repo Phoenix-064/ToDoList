@@ -39,6 +39,11 @@ type EmailVerification struct {
 	Password         string `json:"password"`
 }
 
+type ChangePasswordRequest struct {
+	FormerPassword string `json:"former_password"`
+	LaterPassword  string `json:"later_password"`
+}
+
 // NewEngineHandler 返回一个EngineHandler
 func NewEngineHandler(db *gorm.DB) EngineHandler {
 	return EngineHandler{
@@ -293,5 +298,60 @@ func (eh *EngineHandler) DeleteUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, models.Response{
 		Message: "ok",
 		Content: "删除成功",
+	})
+}
+
+// ChangePassword 修改用户密码
+func (eh *EngineHandler) ChangePassword(ctx *gin.Context) {
+	uuid, _, err := middleware.GetHeader(ctx)
+	logrus.Info(uuid)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	var change ChangePasswordRequest
+	if err := ctx.ShouldBind(&change); err != nil {
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	user, err := eh.UserManager.CheckUuid(uuid)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	if user.Password != change.FormerPassword {
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Message: "err",
+			Content: "错误的原密码",
+		})
+		return
+	}
+	former := models.User{
+		Uuid:     uuid,
+		Password: change.LaterPassword,
+	}
+	if err = eh.UserManager.UpdateUser(former); err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, models.Response{
+		Message: "ok",
+		Content: "",
 	})
 }

@@ -1,4 +1,4 @@
-FROM golang
+FROM ubuntu:alpine
 
 ENV GO111MODULE=on \
     CGO_ENABLED=0 \

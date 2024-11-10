@@ -25,7 +25,7 @@ type HandleUser interface {
 	CheckUser(string) (models.User, error) //可以输入uuid,email
 	CheckUuid(uuid string) (models.User, error)
 	CheckEmail(email string) (models.User, error)
-	UpdateUser(former models.User, later models.User) error
+	UpdateUser(later models.User) error
 }
 
 // newUser 返回一个新的用户
@@ -142,18 +142,29 @@ func (um *UserManager) CheckEmail(email string) (models.User, error) {
 
 // DeleteUser 删除用户
 func (um *UserManager) DeleteUser(c string) error {
-	temp, err := um.CheckUser(c)
+	u, err := um.CheckUser(c)
 	if err != nil {
 		return err
 	}
-	um.db.Delete(&temp)
+	if result := um.db.Model(&models.Todo{}).Where("user_uuid = ?", u.Uuid).Delete(&models.Todo{}); result.Error != nil {
+		return result.Error
+	}
+	if err := um.db.Model(&models.User{Uuid: u.Uuid}).Association("Wishes").Clear(); err != nil {
+		return err
+	}
+	if err := um.db.Model(&models.User{Uuid: u.Uuid}).Association("Todos").Clear(); err != nil {
+		return err
+	}
+	if result := um.db.Model(&models.User{}).Delete(&u); result.Error != nil {
+		return result.Error
+	}
 	return nil
 }
 
 // UpdateUser 更新用户数据
-func (um *UserManager) UpdateUser(former models.User, later models.User) error {
+func (um *UserManager) UpdateUser(later models.User) error {
 	var u models.User
-	result := um.db.Model(&u).Where("uuid = ?", former.Uuid).Updates(later)
+	result := um.db.Model(&u).Where("uuid = ?", later.Uuid).Updates(later)
 	if result.Error != nil {
 		return result.Error
 	}

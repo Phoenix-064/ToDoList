@@ -24,6 +24,7 @@ func (gs GinService) SetUpRoutes(e *gin.Engine, eh engine.EngineHandler) {
 			User.POST("/signup/send-code", eh.SendVerificationCode)
 			User.POST("/signup", eh.SignUp)
 			User.POST("/delete", middleware.AuthMiddleware(), eh.DeleteUser)
+			User.POST("/change-password", middleware.AuthMiddleware(), eh.ChangePassword)
 		}
 		Admin := ToDoList.Group("/admin")
 		{
