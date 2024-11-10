@@ -24,3 +24,20 @@ time="2024-11-08T18:27:17+08:00" level=error msg="没有此用户" appName=ToDoL
 time="2024-11-08T18:30:28+08:00" level=error msg="不存在的uuid" appName=ToDoList
 time="2024-11-08T18:35:45+08:00" level=error msg="不存在的uuid" appName=ToDoList
 time="2024-11-08T18:36:09+08:00" level=error msg="不存在的uuid" appName=ToDoList
+time="2024-11-10T10:52:53+08:00" level=fatal msg="Error 1005 (HY000): Can't create table `todolist`.`todos` (errno: 150 \"Foreign key constraint is incorrectly formed\")" appName=ToDoList
+time="2024-11-10T11:05:07+08:00" level=fatal msg="Error 1005 (HY000): Can't create table `todolist`.`todos` (errno: 150 \"Foreign key constraint is incorrectly formed\")" appName=ToDoList
+time="2024-11-10T11:16:41+08:00" level=error msg="Error 1366 (22007): Incorrect string value: '\\xE7\\x8E\\xA9\\xE5\\x8E\\x9F...' for column `todolist`.`todos`.`event` at row 1" appName=ToDoList
+time="2024-11-10T11:16:57+08:00" level=error msg="Error 1366 (22007): Incorrect string value: '\\xE7\\x8E\\xA9\\xE5\\x8E\\x9F...' for column `todolist`.`todos`.`event` at row 1" appName=ToDoList
+time="2024-11-10T11:18:47+08:00" level=error msg="读取数据时出错，Error 1054 (42S22): Unknown column 'user_id' in 'where clause'" appName=ToDoList
+time="2024-11-10T11:33:34+08:00" level=error msg="解析token时出错，token is expired by 24h58m53s" appName=ToDoList
+time="2024-11-10T11:34:03+08:00" level=error msg="绑定结构体失败，json: cannot unmarshal object into Go value of type []*models.Todo" appName=ToDoList
+time="2024-11-10T11:40:17+08:00" level=error msg="Error 1366 (22007): Incorrect string value: '\\xE6\\xAC\\xA1\\xE5\\x91\\xBD...' for column `todolist`.`todos`.`description` at row 1" appName=ToDoList
+time="2024-11-10T11:47:23+08:00" level=error msg="Error 1205 (HY000): Lock wait timeout exceeded; try restarting transaction" appName=ToDoList
+time="2024-11-10T11:48:14+08:00" level=error msg="Error 1205 (HY000): Lock wait timeout exceeded; try restarting transaction" appName=ToDoList
+time="2024-11-10T11:49:31+08:00" level=error msg="Error 1205 (HY000): Lock wait timeout exceeded; try restarting transaction" appName=ToDoList
+time="2024-11-10T11:51:24+08:00" level=error msg="Error 1205 (HY000): Lock wait timeout exceeded; try restarting transaction" appName=ToDoList
+time="2024-11-10T12:16:00+08:00" level=error msg="Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`todolist`.`wishes`, CONSTRAINT `fk_users_wishes` FOREIGN KEY (`user_uuid`) REFERENCES `users` (`uuid`))" appName=ToDoList
+time="2024-11-10T12:27:15+08:00" level=error msg="Error 1452 (23000): Cannot add or update a child row: a foreign key constraint fails (`todolist`.`wishes`, CONSTRAINT `fk_users_wishes` FOREIGN KEY (`user_uuid`) REFERENCES `users` (`uuid`))" appName=ToDoList
+time="2024-11-10T12:30:37+08:00" level=error msg="Error 1305 (42000): FUNCTION todolist.RANDOM does not exist" appName=ToDoList
+time="2024-11-10T12:33:26+08:00" level=error msg="Error 1205 (HY000): Lock wait timeout exceeded; try restarting transaction" appName=ToDoList
+time="2024-11-10T12:34:45+08:00" level=error msg="Error 1305 (42000): FUNCTION todolist.RANDOM does not exist" appName=ToDoList

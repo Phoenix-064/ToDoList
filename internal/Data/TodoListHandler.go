@@ -33,8 +33,15 @@ type HandleTodo interface {
 }
 
 // NewTodo 建立一个新的待办事项
-func NewTodo(id string, Event string) *models.Todo {
-	return &models.Todo{ID: id, Event: Event, Completed: false}
+func NewTodo(id string, Event string, isCycle bool, description string, importanceLevel int) *models.Todo {
+	return &models.Todo{
+		ID:              id,
+		Event:           Event,
+		Description:     description,
+		Completed:       false,
+		IsCycle:         isCycle,
+		ImportanceLevel: importanceLevel,
+	}
 }
 
 // NewTodoManager 建立一个新的用户待办事项管理
@@ -143,7 +150,7 @@ func (m *TodoManager) RandomlySelectTodo(uuid string) (models.Todo, error) {
 // ReadUserTodo 读取用户todos
 func (m *TodoGormManager) ReadUserTodos(uuid string) ([]models.Todo, error) {
 	var todos []models.Todo
-	result := m.db.Where("user_id = ?", uuid).Find(&todos)
+	result := m.db.Where("user_uuid = ?", uuid).Find(&todos)
 	if result.Error != nil {
 		return []models.Todo{}, result.Error
 	}

@@ -24,6 +24,16 @@ func NewWishManager(db *gorm.DB) *WishManager {
 	return &WishManager{db: db}
 }
 
+func NewWish(id string, Event string, isCycle bool, description string, IsShared bool) *models.Wish {
+	return &models.Wish{
+		ID:          id,
+		Event:       Event,
+		IsCycle:     isCycle,
+		Description: description,
+		IsShared:    IsShared,
+	}
+}
+
 // ReadUserWishes 读取用户所有的 wish
 func (m *WishManager) ReadUserWishes(uuid string) ([]models.Wish, error) {
 	var wishes []models.Wish
@@ -72,7 +82,7 @@ func (m *WishManager) DeleteWish(uuid string, wishID string) error {
 // RandomlySelectWish 获取一个随机的 wish
 func (m *WishManager) RandomlySelectWish(uuid string) (models.Wish, error) {
 	var wish models.Wish
-	if result := m.db.Where("user_uuid = ?", uuid).Order("RANDOM()").First(&wish); result.Error != nil {
+	if result := m.db.Where("user_uuid = ?", uuid).Order("RAND()").First(&wish); result.Error != nil {
 		return models.Wish{}, result.Error
 	}
 	return wish, nil

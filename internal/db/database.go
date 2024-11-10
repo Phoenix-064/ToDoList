@@ -17,7 +17,7 @@ func NewDataBase() (Database, error) {
 	if err != nil {
 		return Database{}, err
 	}
-	if err := db.AutoMigrate(&models.Todo{}, &models.User{}, &models.Wish{}); err != nil {
+	if err := db.AutoMigrate(&models.User{}, &models.Todo{}, &models.Wish{}); err != nil {
 		return Database{}, err
 	}
 	return Database{DB: db}, nil

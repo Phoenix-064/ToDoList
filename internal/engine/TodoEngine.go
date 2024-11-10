@@ -11,8 +11,15 @@ import (
 )
 
 type GetTodo struct {
-	ID    string `json:"ID"`
-	Event string `json:"event"`
+	Description     string `json:"description"`
+	Event           string `json:"event"`
+	ID              string `json:"id"`
+	ImportanceLevel int64  `json:"importance_level"`
+	IsCycle         bool   `json:"is_cycle"`
+}
+
+type TodosWrapper struct {
+	Todos []*models.Todo `json:"todos"`
 }
 
 // GetAllTodo 获取所有待办事项
@@ -63,7 +70,7 @@ func (eh *EngineHandler) CreateTodo(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	todo := data.NewTodo(tempTodo.ID, tempTodo.Event)
+	todo := data.NewTodo(tempTodo.ID, tempTodo.Event, tempTodo.IsCycle, tempTodo.Description, int(tempTodo.ImportanceLevel))
 	if err = eh.TodoManager.AddTodo(uuid, todo); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
@@ -80,8 +87,8 @@ func (eh *EngineHandler) CreateTodo(ctx *gin.Context) {
 
 // SaveAllTodos 添加所有 todo
 func (eh *EngineHandler) SaveAllTodos(ctx *gin.Context) {
-	todos := []*models.Todo{}
-	if err := ctx.ShouldBind(&todos); err != nil {
+	TodosWrapper := TodosWrapper{}
+	if err := ctx.ShouldBind(&TodosWrapper); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
@@ -98,7 +105,7 @@ func (eh *EngineHandler) SaveAllTodos(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	if err = eh.TodoManager.SaveTheUserTodos(uuid, todos); err != nil {
+	if err = eh.TodoManager.SaveTheUserTodos(uuid, TodosWrapper.Todos); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
@@ -123,16 +130,8 @@ func (eh *EngineHandler) DeleteTodo(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	var tempTodo models.Todo
-	if err = ctx.ShouldBind(&tempTodo); err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.Response{
-			Message: "err",
-			Content: err.Error(),
-		})
-		logrus.Error(err)
-		return
-	}
-	if err = eh.TodoManager.DeleteTodo(uuid, tempTodo.ID); err != nil {
+	todoID := ctx.Query("id")
+	if err = eh.TodoManager.DeleteTodo(uuid, todoID); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
@@ -200,4 +199,8 @@ func (eh *EngineHandler) UpdateTodo(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
+	ctx.JSON(http.StatusOK, models.Response{
+		Message: "ok",
+		Content: "",
+	})
 }

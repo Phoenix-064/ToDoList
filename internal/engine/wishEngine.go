@@ -1,6 +1,7 @@
 package engine
 
 import (
+	data "ToDoList/internal/Data"
 	"ToDoList/internal/middleware"
 	"ToDoList/internal/models"
 	"net/http"
@@ -143,7 +144,7 @@ func (eh *EngineHandler) AddWish(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	wish := &models.Wish{}
+	wish := &WishRequest{}
 	if err = ctx.ShouldBind(wish); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
@@ -152,7 +153,8 @@ func (eh *EngineHandler) AddWish(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	if err = eh.WishManager.AddWishes(uuid, wish); err != nil {
+	tempWish := data.NewWish(wish.ID, wish.Event, wish.IsCycle, wish.Description, wish.IsShared)
+	if err = eh.WishManager.AddWishes(uuid, tempWish); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),

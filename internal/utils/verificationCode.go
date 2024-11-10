@@ -104,7 +104,7 @@ func (vch VerificationCodeHandler) CheckTheVerificationCode(email string, code s
 		}
 		return result.Error
 	}
-	if err := vch.db.Model(&verificationCode).Update("used", true).Error; err != nil {
+	if err := vch.db.Model(&verificationCode).Where("code = ? AND email = ?", code, email).Update("used", true).Error; err != nil {
 		return err
 	}
 	return nil
