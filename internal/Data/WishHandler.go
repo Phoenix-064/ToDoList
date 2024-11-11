@@ -131,9 +131,10 @@ func (m *WishManager) AddWishToTodo(userUUID string, wishID string) error {
 		Event:           wish.Event,
 		ImportanceLevel: 0,
 		UserUuid:        userUUID,
-		Completed:       "",
+		Completed:       false,
 		IsCycle:         wish.IsCycle,
 		Description:     wish.Description,
+		CompletedDate:   "",
 	}
 	if result := m.db.Create(&todo); result.Error != nil {
 		return result.Error

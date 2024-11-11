@@ -37,9 +37,10 @@ func NewTodo(id string, Event string, isCycle bool, description string, importan
 		ID:              id,
 		Event:           Event,
 		Description:     description,
-		Completed:       "",
+		Completed:       false,
 		IsCycle:         isCycle,
 		ImportanceLevel: importanceLevel,
+		CompletedDate:   "",
 	}
 }
 

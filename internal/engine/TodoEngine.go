@@ -232,7 +232,7 @@ func (eh *EngineHandler) RecordCompletionTime(ctx *gin.Context) {
 		return
 	}
 	todo := &models.Todo{
-		Completed: RequestTodo.Completed,
+		CompletedDate: RequestTodo.Completed,
 	}
 	if err := eh.TodoManager.UpdateTodo(uuid, RequestTodo.ID, todo); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
