@@ -35,13 +35,13 @@ type Wish struct {
 	Event       string `json:"event" gorm:"column:event;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"`
 	IsCycle     bool   `json:"is_cycle" gorm:"column:is_cycle"`
 	Description string `json:"description" gorm:"column:description;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"`
-	IsShared    bool   `json:"is_wish" gorm:"column:is_shared"`
+	IsShared    bool   `json:"is_shared" gorm:"column:is_shared"`
 }
 
 // CommunityWish 社区心愿
 type CommunityWish struct {
 	Description string `json:"description"`
 	Event       string `json:"event"`
-	ID          string `json:"id"`
+	ID          string `json:"id" gorm:"primaryKey"`
 	Viewed      int64  `json:"viewed"`
 }

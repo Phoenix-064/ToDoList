@@ -101,7 +101,10 @@ func (m *WishManager) UpdateWish(userUUID string, wishID string, wish *models.Wi
 	if result := m.db.Where("user_uuid = ? AND id = ?", userUUID, wishID).First(&formerWish); result.Error != nil {
 		return result.Error
 	}
-	if result := m.db.Model(&formerWish).Updates(wish); result.Error != nil {
+	if result := m.db.Where("user_uuid = ? AND id = ?", userUUID, wishID).Updates(*wish); result.Error != nil {
+		return result.Error
+	}
+	if result := m.db.Select("is_shared").Where("user_uuid = ? AND id = ?", userUUID, wishID).Updates(*wish); result.Error != nil {
 		return result.Error
 	}
 	// 检查是否需要添加至社区，或者是否需要从社区删除

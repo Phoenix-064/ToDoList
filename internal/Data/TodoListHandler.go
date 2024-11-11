@@ -172,7 +172,7 @@ func (m *TodoGormManager) SaveTheUserTodos(uuid string, todos []*models.Todo) er
 		for i := range todos {
 			todos[i].UserUuid = uuid
 		}
-		if result := m.db.Create(&todos); result.Error != nil {
+		if result := tx.Create(&todos); result.Error != nil {
 			return result.Error
 		}
 		return nil

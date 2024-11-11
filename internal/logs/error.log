@@ -61,3 +61,41 @@ time="2024-11-11T16:54:32+08:00" level=error msg="绑定结构体失败，json: 
 time="2024-11-11T16:54:47+08:00" level=error msg="绑定结构体失败，json: cannot unmarshal string into Go struct field Todo.todos.completed of type bool" appName=ToDoList
 time="2024-11-11T16:57:15+08:00" level=error msg="绑定结构体失败，json: cannot unmarshal string into Go struct field Todo.todos.completed of type bool" appName=ToDoList
 time="2024-11-11T17:00:17+08:00" level=error msg="Error 1205 (HY000): Lock wait timeout exceeded; try restarting transaction" appName=ToDoList
+time="2024-11-11T18:11:32+08:00" level=fatal msg="this authentication plugin is not supported" appName=ToDoList
+time="2024-11-11T18:14:39+08:00" level=fatal msg="Error 1292 (22007): Truncated incorrect INTEGER value: 'pariatur id nostrud'" appName=ToDoList
+time="2024-11-11T18:17:27+08:00" level=error msg="解析token时出错，token is expired by 7h2m2s" appName=ToDoList
+time="2024-11-11T18:17:34+08:00" level=error msg="json: cannot unmarshal string into Go struct field Todo.completed of type bool" appName=ToDoList
+time="2024-11-11T18:19:31+08:00" level=error msg="json: cannot unmarshal bool into Go struct field RequestChangeComplete.completed of type string" appName=ToDoList
+time="2024-11-11T18:21:14+08:00" level=fatal msg="this authentication plugin is not supported" appName=ToDoList
+time="2024-11-11T18:21:29+08:00" level=fatal msg="this authentication plugin is not supported" appName=ToDoList
+time="2024-11-11T18:22:52+08:00" level=fatal msg="Error 1193 (HY000): Unknown system variable 'auth'" appName=ToDoList
+time="2024-11-11T18:23:42+08:00" level=error msg="解析token时出错，token is expired by 5h55m35s" appName=ToDoList
+time="2024-11-11T18:24:00+08:00" level=error msg="Error 1062 (23000): Duplicate entry '40' for key 'PRIMARY'" appName=ToDoList
+time="2024-11-11T18:24:08+08:00" level=error msg="Error 1062 (23000): Duplicate entry '40' for key 'PRIMARY'" appName=ToDoList
+time="2024-11-11T18:25:15+08:00" level=error msg="Error 1062 (23000): Duplicate entry '123' for key 'PRIMARY'" appName=ToDoList
+time="2024-11-11T18:25:25+08:00" level=error msg="Error 1062 (23000): Duplicate entry '12322222' for key 'PRIMARY'" appName=ToDoList
+time="2024-11-11T18:26:23+08:00" level=error msg="解析token时出错，token is expired by 5h58m16s" appName=ToDoList
+time="2024-11-11T19:04:53+08:00" level=fatal msg="this authentication plugin is not supported" appName=ToDoList
+time="2024-11-11T19:07:09+08:00" level=fatal msg="this authentication plugin is not supported" appName=ToDoList
+time="2024-11-11T19:09:29+08:00" level=error msg="解析token时出错，token is expired by 6h41m22s" appName=ToDoList
+time="2024-11-11T19:09:47+08:00" level=error msg="解析token时出错，token is expired by 6h41m40s" appName=ToDoList
+time="2024-11-11T19:11:08+08:00" level=error msg="Error 1062 (23000): Duplicate entry '40' for key 'PRIMARY'" appName=ToDoList
+time="2024-11-11T19:28:44+08:00" level=fatal msg="this authentication plugin is not supported" appName=ToDoList
+time="2024-11-11T19:30:31+08:00" level=error msg="Error 1205 (HY000): Lock wait timeout exceeded; try restarting transaction" appName=ToDoList
+time="2024-11-11T19:34:48+08:00" level=fatal msg="this authentication plugin is not supported" appName=ToDoList
+time="2024-11-11T19:35:08+08:00" level=fatal msg="Error 1193 (HY000): Unknown system variable 'auth'" appName=ToDoList
+time="2024-11-11T19:35:34+08:00" level=error msg="Error 1062 (23000): Duplicate entry '13' for key 'PRIMARY'" appName=ToDoList
+time="2024-11-11T19:41:50+08:00" level=fatal msg="this authentication plugin is not supported" appName=ToDoList
+time="2024-11-11T19:42:40+08:00" level=fatal msg="Error 1193 (HY000): Unknown system variable 'auth'" appName=ToDoList
+time="2024-11-11T19:43:23+08:00" level=error msg="Error 1062 (23000): Duplicate entry '40' for key 'PRIMARY'" appName=ToDoList
+time="2024-11-11T19:43:49+08:00" level=error msg="解析token时出错，token is expired by 7h15m42s" appName=ToDoList
+time="2024-11-11T19:44:03+08:00" level=error msg="record not found" appName=ToDoList
+time="2024-11-11T19:44:38+08:00" level=error msg="record not found" appName=ToDoList
+time="2024-11-11T19:44:58+08:00" level=error msg="record not found" appName=ToDoList
+time="2024-11-11T19:45:21+08:00" level=error msg="record not found" appName=ToDoList
+time="2024-11-11T19:56:39+08:00" level=error msg="record not found" appName=ToDoList
+time="2024-11-11T19:59:38+08:00" level=error msg="record not found" appName=ToDoList
+time="2024-11-11T20:05:00+08:00" level=error msg="Error 1146 (42S02): Table 'todolist.community_wishes' doesn't exist" appName=ToDoList
+time="2024-11-11T20:43:56+08:00" level=error msg="Error 1062 (23000): Duplicate entry '1' for key 'PRIMARY'" appName=ToDoList
+time="2024-11-11T20:44:16+08:00" level=error msg="解析token时出错，token is expired by 8h16m9s" appName=ToDoList
+time="2024-11-11T20:45:05+08:00" level=error msg="Error 1062 (23000): Duplicate entry '1' for key 'PRIMARY'" appName=ToDoList

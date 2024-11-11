@@ -10,6 +10,8 @@ type HandleCommunityWishes interface {
 	GetWishes() (*[]models.CommunityWish, error)
 	AddView(id string) error
 	AddToWish(uuid string, id string) error
+	AddWishToCommunity(wish *models.Wish) error
+	DeleteWishFromCommunity(wish *models.Wish) error
 }
 
 type CommunityWishesHandler struct {
@@ -36,6 +38,9 @@ func (h *CommunityWishesHandler) AddView(id string) error {
 		return result.Error
 	}
 	wish.Viewed += 1
+	if result := h.db.Where("id = ?", id).Updates(wish); result.Error != nil {
+		return result.Error
+	}
 	return nil
 }
 
@@ -55,7 +60,13 @@ func (h *CommunityWishesHandler) AddToWish(uuid string, id string) error {
 
 // AddWishToCommunity 将 wish 添加至社区
 func (h *CommunityWishesHandler) AddWishToCommunity(wish *models.Wish) error {
-	if result := h.db.Create(wish); result.Error != nil {
+	CommunityWish := models.CommunityWish{
+		ID:          wish.ID,
+		Event:       wish.Event,
+		Description: wish.Description,
+		Viewed:      0,
+	}
+	if result := h.db.Create(&CommunityWish); result.Error != nil {
 		return result.Error
 	}
 	return nil
@@ -63,7 +74,7 @@ func (h *CommunityWishesHandler) AddWishToCommunity(wish *models.Wish) error {
 
 // DeleteWishFromCommunity 将 wish 从社区删除
 func (h *CommunityWishesHandler) DeleteWishFromCommunity(wish *models.Wish) error {
-	if result := h.db.Delete(wish); result.Error != nil {
+	if result := h.db.Where("id = ?", wish.ID).Delete(&models.CommunityWish{}); result.Error != nil {
 		return result.Error
 	}
 	return nil

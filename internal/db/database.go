@@ -14,6 +14,7 @@ type Database struct {
 
 func NewDataBase() (Database, error) {
 	dsn := os.Getenv("DSN")
+	// dsn := "root:123@tcp(127.0.0.1:3306)/todoList?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		return Database{}, err

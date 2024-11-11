@@ -18,6 +18,10 @@ type WishRequest struct {
 	IsShared    bool   `json:"is_shared"`
 }
 
+type AddToTodoRequest struct {
+	ID string `json:"id"`
+}
+
 // RandomlySelectWish 获取随机的 wish
 func (eh *EngineHandler) RandomlySelectWish(ctx *gin.Context) {
 	uuid, _, err := middleware.GetHeader(ctx)
@@ -179,8 +183,16 @@ func (eh *EngineHandler) AddToTodo(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	WishID := ctx.Query("id")
-	if err = eh.WishManager.AddWishToTodo(uuid, WishID); err != nil {
+	WishID := &AddToTodoRequest{}
+	if err = ctx.ShouldBind(&WishID); err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	if err = eh.WishManager.AddWishToTodo(uuid, WishID.ID); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
