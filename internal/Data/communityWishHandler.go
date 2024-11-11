@@ -52,3 +52,19 @@ func (h *CommunityWishesHandler) AddToWish(uuid string, id string) error {
 	}
 	return nil
 }
+
+// AddWishToCommunity 将 wish 添加至社区
+func (h *CommunityWishesHandler) AddWishToCommunity(wish *models.Wish) error {
+	if result := h.db.Create(wish); result.Error != nil {
+		return result.Error
+	}
+	return nil
+}
+
+// DeleteWishFromCommunity 将 wish 从社区删除
+func (h *CommunityWishesHandler) DeleteWishFromCommunity(wish *models.Wish) error {
+	if result := h.db.Delete(wish); result.Error != nil {
+		return result.Error
+	}
+	return nil
+}

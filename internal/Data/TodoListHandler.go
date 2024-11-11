@@ -3,7 +3,6 @@ package data
 import (
 	"ToDoList/internal/models"
 	"encoding/json"
-	"errors"
 	"math/rand"
 	"os"
 	"path/filepath"
@@ -28,7 +27,7 @@ type HandleTodo interface {
 	SaveTheUserTodos(uuid string, todos []*models.Todo) error
 	AddTodo(uuid string, todo *models.Todo) error
 	DeleteTodo(uuid string, todoID string) error
-	RandomlySelectTodo(uuid string) (models.Todo, error)
+	// RandomlySelectTodo(uuid string) (models.Todo, error)
 	UpdateTodo(userUUID string, todoID string, todo *models.Todo) error
 }
 
@@ -38,7 +37,7 @@ func NewTodo(id string, Event string, isCycle bool, description string, importan
 		ID:              id,
 		Event:           Event,
 		Description:     description,
-		Completed:       false,
+		Completed:       "",
 		IsCycle:         isCycle,
 		ImportanceLevel: importanceLevel,
 	}
@@ -196,16 +195,16 @@ func (m *TodoGormManager) DeleteTodo(uuid string, todoID string) error {
 	return nil
 }
 
-// RandomlySelectTodo 获取一个随机 todo
-func (m *TodoGormManager) RandomlySelectTodo(uuid string) (models.Todo, error) {
-	var todo models.Todo
-	if result := m.db.Where("user_uuid = ? is_wish = ?", uuid, true).Order("RANDOM()").First(&todo); result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return models.Todo{}, result.Error
-		}
-	}
-	return todo, nil
-}
+// // RandomlySelectTodo 获取一个随机 todo
+// func (m *TodoGormManager) RandomlySelectTodo(uuid string) (models.Todo, error) {
+// 	var todo models.Todo
+// 	if result := m.db.Where("user_uuid = ? is_wish = ?", uuid, true).Order("RANDOM()").First(&todo); result.Error != nil {
+// 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+// 			return models.Todo{}, result.Error
+// 		}
+// 	}
+// 	return todo, nil
+// }
 
 // UpdateTodo 更新一个 todo
 func (m *TodoGormManager) UpdateTodo(userUUID string, todoID string, todo *models.Todo) error {

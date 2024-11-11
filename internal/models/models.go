@@ -15,7 +15,7 @@ type Todo struct {
 	ID              string `json:"id" gorm:"column:id;primaryKey"`
 	UserUuid        string `json:"user_uuid" gorm:"column:user_uuid;index;type:varchar(36)"`
 	Event           string `json:"event" gorm:"column:event;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"`
-	Completed       bool   `json:"completed" gorm:"column:completed"`
+	Completed       string `json:"completed" gorm:"column:completed"`
 	IsCycle         bool   `json:"is_cycle" gorm:"column:is_cycle"`
 	Description     string `json:"description" gorm:"column:description;type:varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"`
 	ImportanceLevel int    `json:"importance_level" gorm:"column:importance_level"`
