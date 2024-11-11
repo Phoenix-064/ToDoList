@@ -1,0 +1,16 @@
+{
+    "cSpell.ignoreWords": [
+        "gonic",
+        "gorm",
+        "logrus",
+        "sirupsen",
+        "varchar"
+    ],
+    "cSpell.words": [
+        "signin",
+        "signup",
+        "sparkforge",
+        "todolist",
+        "Todos"
+    ]
+}
