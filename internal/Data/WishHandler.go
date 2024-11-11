@@ -2,6 +2,7 @@ package data
 
 import (
 	"ToDoList/internal/models"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -108,7 +109,7 @@ func (m *WishManager) AddWishToTodo(userUUID string, wishID string) error {
 		Event:           wish.Event,
 		ImportanceLevel: 0,
 		UserUuid:        userUUID,
-		Completed:       false,
+		Completed:       time.Time{},
 		IsCycle:         wish.IsCycle,
 		Description:     wish.Description,
 	}

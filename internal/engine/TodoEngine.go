@@ -5,6 +5,7 @@ import (
 	"ToDoList/internal/middleware"
 	"ToDoList/internal/models"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -145,31 +146,31 @@ func (eh *EngineHandler) DeleteTodo(ctx *gin.Context) {
 	})
 }
 
-// GetATodo 获得一个随机 todo
-func (eh *EngineHandler) GetATodo(ctx *gin.Context) {
-	uuid, _, err := middleware.GetHeader(ctx)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.Response{
-			Message: "err",
-			Content: err.Error(),
-		})
-		logrus.Error(err)
-		return
-	}
-	todo, err := eh.TodoManager.RandomlySelectTodo(uuid)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, models.Response{
-			Message: "err",
-			Content: err.Error(),
-		})
-		logrus.Error(err)
-		return
-	}
-	ctx.JSON(http.StatusOK, models.Response{
-		Message: "ok",
-		Content: todo,
-	})
-}
+// // GetATodo 获得一个随机 todo
+// func (eh *EngineHandler) GetATodo(ctx *gin.Context) {
+// 	uuid, _, err := middleware.GetHeader(ctx)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, models.Response{
+// 			Message: "err",
+// 			Content: err.Error(),
+// 		})
+// 		logrus.Error(err)
+// 		return
+// 	}
+// 	todo, err := eh.TodoManager.RandomlySelectTodo(uuid)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, models.Response{
+// 			Message: "err",
+// 			Content: err.Error(),
+// 		})
+// 		logrus.Error(err)
+// 		return
+// 	}
+// 	ctx.JSON(http.StatusOK, models.Response{
+// 		Message: "ok",
+// 		Content: todo,
+// 	})
+// }
 
 // 更新一个 todo
 func (eh *EngineHandler) UpdateTodo(ctx *gin.Context) {
@@ -192,6 +193,33 @@ func (eh *EngineHandler) UpdateTodo(ctx *gin.Context) {
 		return
 	}
 	if err = eh.TodoManager.UpdateTodo(uuid, todo.ID, todo); err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	ctx.JSON(http.StatusOK, models.Response{
+		Message: "ok",
+		Content: "",
+	})
+}
+
+// RecordCompletionTime 记录完成时间
+func (eh *EngineHandler) RecordCompletionTime(ctx *gin.Context) {
+	uuid, _, err := middleware.GetHeader(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	todoID := ctx.Query("id")
+	todo := models.Todo{Completed: time.Now()}
+	if err := eh.TodoManager.UpdateTodo(uuid, todoID, &todo); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),
