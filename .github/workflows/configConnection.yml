@@ -1,0 +1,50 @@
+name: Deploy
+
+on:                   # action触发条件,此处即为push以v开头tag时触发
+  push:
+    tags:
+      - v**
+
+jobs:
+  Deploy:
+    # 运行环境，此处为自建runner，已在组织中设置共享，可直接调用，禁止直接修改其环境
+    # 如使用 setup-go、登录 dockerhub 等都算修改环境的行为
+    runs-on: self-hosted
+    steps:
+      # 检出代码，固定项
+      # 在少数情况下也可以用于增加此 workflow 的 git 权限
+      # 在更少数不需要读取代码的情况也可以不加
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 获取镜像地址，只需修改 url为 habrbor 中镜像地址
+      # https://github.com/docker/metadata-action
+      # 自动计算镜像 tag，默认情况下在 tag     触发时除了指定 refs/tag 还有 latest
+      # push 触发时默认为 branch 名称做 tag。除此之外也支持深度自定义
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: harbor.ncuos.com/fresh/pizzalist
+
+      # 构建并推送镜像
+      # 组织的 Action 服务器自带 Harbor 的所有仓库推送权限，所以不需要进行登录操作
+      # buildx、QEMU 也是已经预装好了的，可以直接使用
+      - name: Build Docker Image and Push
+        id: docker_build
+        uses: docker/build-push-action@v6
+        with:
+          push: true
+          context: .
+          file: ./Dockerfile
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+    
+      - name: Update Deployment                         # 推送部署,只需修改namespace和workload
+        uses: MultiMx/K8sSetImageAction@v0.5
+        with:
+          backend: 'https://rancher.ncuos.com'
+          token: ${{ secrets.CATTLE_TOKEN }}            #token在rancher中获取然后在settings-secrets-action中设置,
+          namespace: sparkforge
+          workload: pizzalist                               #workload为rancher中的deployment名称
+          image: ${{ steps.meta.outputs.tags[0] }}
