@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -38,7 +37,7 @@ func NewTodo(id string, Event string, isCycle bool, description string, importan
 		ID:              id,
 		Event:           Event,
 		Description:     description,
-		Completed:       time.Time{},
+		Completed:       "",
 		IsCycle:         isCycle,
 		ImportanceLevel: importanceLevel,
 	}

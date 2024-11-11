@@ -5,7 +5,6 @@ import (
 	"ToDoList/internal/middleware"
 	"ToDoList/internal/models"
 	"net/http"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -21,6 +20,11 @@ type GetTodo struct {
 
 type TodosWrapper struct {
 	Todos []*models.Todo `json:"todos"`
+}
+
+type RequestChangeComplete struct {
+	Completed string `json:"completed"`
+	ID        string `json:"id"`
 }
 
 // GetAllTodo 获取所有待办事项
@@ -217,9 +221,20 @@ func (eh *EngineHandler) RecordCompletionTime(ctx *gin.Context) {
 		logrus.Error(err)
 		return
 	}
-	todoID := ctx.Query("id")
-	todo := models.Todo{Completed: time.Now()}
-	if err := eh.TodoManager.UpdateTodo(uuid, todoID, &todo); err != nil {
+
+	RequestTodo := RequestChangeComplete{}
+	if err := ctx.ShouldBind(&RequestTodo); err != nil {
+		ctx.JSON(http.StatusBadRequest, models.Response{
+			Message: "err",
+			Content: err.Error(),
+		})
+		logrus.Error(err)
+		return
+	}
+	todo := &models.Todo{
+		Completed: RequestTodo.Completed,
+	}
+	if err := eh.TodoManager.UpdateTodo(uuid, RequestTodo.ID, todo); err != nil {
 		ctx.JSON(http.StatusInternalServerError, models.Response{
 			Message: "err",
 			Content: err.Error(),

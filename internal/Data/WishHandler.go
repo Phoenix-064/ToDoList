@@ -2,7 +2,6 @@ package data
 
 import (
 	"ToDoList/internal/models"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -66,6 +65,12 @@ func (m *WishManager) SaveTheUserWishes(uuid string, wishes []*models.Wish) erro
 // AddWishes 添加一个 wish
 func (m *WishManager) AddWishes(uuid string, wish *models.Wish) error {
 	wish.UserUuid = uuid
+	if wish.IsShared {
+		h := NewCommunityWishesHandler(m.db)
+		if err := h.AddWishToCommunity(wish); err != nil {
+			return err
+		}
+	}
 	if result := m.db.Create(wish); result.Error != nil {
 		return result.Error
 	}
@@ -92,8 +97,25 @@ func (m *WishManager) RandomlySelectWish(uuid string) (models.Wish, error) {
 // UpdateWish 修改一个 wish
 func (m *WishManager) UpdateWish(userUUID string, wishID string, wish *models.Wish) error {
 	wish.UserUuid = userUUID
-	if result := m.db.Where("user_uuid = ? AND id = ?", userUUID, wishID).Updates(wish); result.Error != nil {
+	var formerWish models.Wish
+	if result := m.db.Where("user_uuid = ? AND id = ?", userUUID, wishID).First(&formerWish); result.Error != nil {
 		return result.Error
+	}
+	if result := m.db.Model(&formerWish).Updates(wish); result.Error != nil {
+		return result.Error
+	}
+	// 检查是否需要添加至社区，或者是否需要从社区删除
+	if formerWish.IsShared != wish.IsShared {
+		h := NewCommunityWishesHandler(m.db)
+		if wish.IsShared {
+			if err := h.AddWishToCommunity(wish); err != nil {
+				return err
+			}
+		} else {
+			if err := h.DeleteWishFromCommunity(wish); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -109,7 +131,7 @@ func (m *WishManager) AddWishToTodo(userUUID string, wishID string) error {
 		Event:           wish.Event,
 		ImportanceLevel: 0,
 		UserUuid:        userUUID,
-		Completed:       time.Time{},
+		Completed:       "",
 		IsCycle:         wish.IsCycle,
 		Description:     wish.Description,
 	}
