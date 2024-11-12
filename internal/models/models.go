@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 // User 用户信息
 type User struct {
 	Email    string `json:"email" gorm:"column:email;not null;type:varchar(30)"`
@@ -44,4 +46,11 @@ type CommunityWish struct {
 	Event       string `json:"event"`
 	ID          string `json:"id" gorm:"primaryKey"`
 	Viewed      int64  `json:"viewed"`
+}
+
+type VerificationCode struct {
+	Code       string `gorm:"column:code"`
+	Email      string `gorm:"column:email"`
+	Used       bool
+	CreateTime time.Time `gorm:"colum:create_time"`
 }

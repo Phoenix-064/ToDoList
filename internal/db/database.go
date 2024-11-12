@@ -25,5 +25,8 @@ func NewDataBase() (Database, error) {
 	if err := db.AutoMigrate(&models.CommunityWish{}); err != nil {
 		return Database{}, err
 	}
+	if err := db.AutoMigrate(&models.VerificationCode{}); err != nil {
+		return Database{}, err
+	}
 	return Database{DB: db}, nil
 }

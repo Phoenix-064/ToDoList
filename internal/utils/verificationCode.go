@@ -1,29 +1,23 @@
 package utils
 
 import (
+	"ToDoList/internal/db"
+	"ToDoList/internal/models"
 	"errors"
 	"fmt"
 	"math/rand"
 	"time"
 
 	"github.com/sirupsen/logrus"
-	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 )
-
-type VerificationCode struct {
-	Code       string `gorm:"column:code"`
-	Email      string `gorm:"column:email"`
-	Used       bool
-	CreateTime time.Time `gorm:"colum:create_time"`
-}
 
 type VerificationCodeHandler struct {
 	db *gorm.DB
 }
 
 type VerificationCodeManager interface {
-	NewVerificationCode(email string) (VerificationCode, error)
+	NewVerificationCode(email string) (models.VerificationCode, error)
 	CheckTheSendingFrequency(email string) error
 	CleanUpExpiredVerificationCodes() error
 	CheckTheVerificationCode(email string, code string) error
@@ -31,25 +25,20 @@ type VerificationCodeManager interface {
 
 // NewVerificationCodeHandler 初始化一个VerificationCode
 func NewVerificationCodeHandler() VerificationCodeHandler {
-	dsn := "root:123@tcp(127.0.0.1:3306)/todoList?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	db, err := db.NewDataBase()
 	if err != nil {
-		logrus.Error("无法连接数据库")
+		logrus.Fatal(err)
 	}
-	err = db.AutoMigrate(&VerificationCode{})
-	if err != nil {
-		logrus.Error("无法连接数据库")
-	}
-	return VerificationCodeHandler{db: db}
+	return VerificationCodeHandler{db: db.DB}
 }
 
 // NewVerificationCode 初始化并储存一个VerificationCode
-func (vch VerificationCodeHandler) NewVerificationCode(email string) (VerificationCode, error) {
+func (vch VerificationCodeHandler) NewVerificationCode(email string) (models.VerificationCode, error) {
 	code := ""
 	for i := 0; i < 6; i++ {
 		code += fmt.Sprintf("%d", rand.Intn(10))
 	}
-	verificationCode := VerificationCode{
+	verificationCode := models.VerificationCode{
 		Email:      email,
 		CreateTime: time.Now(),
 		Code:       code,
@@ -64,7 +53,7 @@ func (vch VerificationCodeHandler) NewVerificationCode(email string) (Verificati
 
 // CheckTheSendingFrequency 检查验证码发送频率
 func (vch VerificationCodeHandler) CheckTheSendingFrequency(email string) error {
-	lastCode := VerificationCode{}
+	lastCode := models.VerificationCode{}
 	result := vch.db.Where("email = ?", email).Order("create_time DESC").First(&lastCode)
 	logrus.Println(time.Now().Sub(lastCode.CreateTime) < time.Minute)
 	if result.Error != nil {
@@ -84,7 +73,7 @@ func (vch VerificationCodeHandler) CheckTheSendingFrequency(email string) error 
 // CleanUpExpiredVerificationCodes 清理过期验证码，似乎没有用
 func (vch VerificationCodeHandler) CleanUpExpiredVerificationCodes() error {
 	ticker := time.NewTicker(6 * time.Hour)
-	var code VerificationCode
+	var code models.VerificationCode
 	for range ticker.C { // 每6小时触发一次
 		vch.db.Where("create_time < ? OR used = ?",
 			time.Now().Add(6*time.Hour),
@@ -95,7 +84,7 @@ func (vch VerificationCodeHandler) CleanUpExpiredVerificationCodes() error {
 
 // CheckTheVerificationCode 检查验证码是否正确与是否过期与是否使用
 func (vch VerificationCodeHandler) CheckTheVerificationCode(email string, code string) error {
-	var verificationCode VerificationCode
+	var verificationCode models.VerificationCode
 	result := vch.db.Where("email = ? AND code = ? AND create_time > ? AND used = ?",
 		email, code, time.Now().Add(-5*time.Minute), false).First(&verificationCode)
 	if result.Error != nil {
